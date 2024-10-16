@@ -2,7 +2,9 @@
 {
   "extends": "./tsconfig.lib.json",
   "compilerOptions": {
-    "declarationMap": true
+    "resolveJsonModule": true,
+    "declarationMap": true,
+    "allowSyntheticDefaultImports": true
   },
   "angularCompilerOptions": {
     "compilationMode": "full"

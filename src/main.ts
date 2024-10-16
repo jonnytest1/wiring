@@ -3,7 +3,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { BrowserModule } from '@angular/platform-browser';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { WiringModule, WiringComponent, templateService } from "wire-lib"
+import { WiringModule, WiringComponent, templateService, examples } from "wire-lib"
 
 @NgModule({
   declarations: [
@@ -20,7 +20,7 @@ import { WiringModule, WiringComponent, templateService } from "wire-lib"
   providers: [{
     provide: templateService,
     useValue: () => {
-      return Promise.resolve([])
+      return Promise.resolve(examples)
     }
   }],
   bootstrap: [WiringComponent]

@@ -19,7 +19,7 @@ export class BatteryUiComponent extends UINode<Battery> {
 
   }
 
-  public static templateIcon = 'battery_charging_full';
+  public static readonly templateIcon = 'battery_charging_full';
   batteryCollection: Collection;
 
   static fromJSON(json: any, map: Record<string, FromJson>, context: { inC: Connection; }): Connection {

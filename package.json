@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "buildlib": "ng build wire-lib",
-    "publish": "npm run build && cd dist/wire-lib && npm publish"
+    "publish": "cd projects/wire-lib && npm version patch && ng build && cd ../../dist/wire-lib && npm publish"
   },
   "private": true,
   "dependencies": {

@@ -16,7 +16,13 @@ export class PiPico extends Collection {
   controlRef = v4()
   pinList = new Array(40).fill(undefined).map((u, i) => new Connection(this, `pico_con_array_${i}`))
 
-  script = `test`
+  set script(newScript: string) {
+    this.executer.update(newScript)
+  }
+
+  get script() {
+    return this.executer.code
+  }
 
 
   started = false

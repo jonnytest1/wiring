@@ -1,5 +1,5 @@
-import type { AfterContentChecked, ComponentRef, OnDestroy, OnInit } from '@angular/core';
-import { ChangeDetectorRef, Component, ViewContainerRef } from '@angular/core';
+import { AfterContentChecked, ComponentRef, ElementRef, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, ViewContainerRef } from '@angular/core';
 import { LocalStorageSerialization } from './storage';
 import { Vector2 } from './util/vector';
 import { BatteryUiComponent } from './wiring-ui/battery-ui/battery-ui.component';
@@ -52,6 +52,10 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
 
   nodes: Array<NodeEl> = [];
   currentWireCache: string;
+
+
+  @ViewChild("sidenavcontent", { read: ElementRef })
+  sidenavcontent: ElementRef<HTMLElement>
 
 
   states = createStateMachine("default", "rotation").withData<{
@@ -176,12 +180,14 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
       const toParent = wire.outC?.parent;
       const to = toParent?.uiNode?.getInOutComponent(wire.outC?.id)?.getInVector();
 
+      const scrollOFfset = new Vector2(this.sidenavcontent.nativeElement.scrollLeft, this.sidenavcontent.nativeElement.scrollTop)
+
       if (!to || !from) {
         return undefined;
       }
       return {
-        from: from,
-        to: to,
+        from: from.added(scrollOFfset),
+        to: to.added(scrollOFfset),
         wire: wire
       };
     });
@@ -207,8 +213,11 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
       //this.updatePosition(node, event);
     }
     // this.wirePositions = this.getWirePositions()
-
+    this.wirePositions = this.getWirePositions();
   }
+
+
+
   updatePosition(node: NodeEl, event: MouseEvent) {
 
     node.uiInstance.setPosition(new Vector2(event).dividedBy(10).rounded().multipliedBy(10));

@@ -31,7 +31,8 @@
       <app-connection-view [data]="dataStructures"></app-connection-view>
     </div>
   </mat-sidenav>
-  <mat-sidenav-content (dragover)="dragMove($event)">
+  <mat-sidenav-content (dragover)="dragMove($event)"
+                       #sidenavcontent>
 
     <p>
 

@@ -17,8 +17,5 @@
   ],
   "include": [
     "./**/*.ts"
-  ],
-  "angularCompilerOptions": {
-    "compilationMode": "true"
-  }
+  ]
 }

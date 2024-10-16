@@ -1,24 +1,14 @@
 # WireLib
 
-This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 15.2.0.
+## Demo
 
-## Code scaffolding
+[https://j0nny.dev/wiring](https://j0nny.dev/wiring)
 
-Run `ng generate component component-name --project wire-lib` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project wire-lib`.
-> Note: Don't forget to add `--project wire-lib` or else it will be added to the default project in your `angular.json` file. 
+# Setup
 
-## Build
+add this to index html html>head
 
-Run `ng build wire-lib` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Publishing
-
-After building your library with `ng build wire-lib`, go to the dist folder `cd dist/wire-lib` and run `npm publish`.
-
-## Running unit tests
-
-Run `ng test wire-lib` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+- <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+         rel="stylesheet">
+- include WiringModule import
+- display WiringComponent

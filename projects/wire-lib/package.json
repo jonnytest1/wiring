@@ -1,6 +1,12 @@
 {
-  "name": "@jonnydev/wire-lib",
-  "version": "1.0.0",
+  "name": "electronics-lib",
+  "version": "1.0.1",
+  "author": "jonathan heindl",
+  "description": "electronics simulator",
+  "license": "ISC",
+  "repository": {
+    "url": "https://github.com/jonnytest1/wiring"
+  },
   "peerDependencies": {
     "@angular/common": "^17.3",
     "@angular/core": "^17.3"

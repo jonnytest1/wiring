@@ -67,4 +67,9 @@ export class PicoUiComponent extends UINode<PiPico> implements OnInit {
   ngOnInit() {
 
   }
+
+
+  getTextAreaHeight() {
+    return Math.min(this.node.script.split('\n').length, 10) * 18 + 'px'
+  }
 }

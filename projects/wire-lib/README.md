@@ -12,3 +12,11 @@ add this to index html html>head
          rel="stylesheet">
 - include WiringModule import
 - display WiringComponent
+- add this for material styles
+
+```
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+```

@@ -17,10 +17,12 @@ import { TransformatorUiComponent } from './transformator-ui/transformator-ui.co
   imports: [
     CommonModule, MatIconModule, MatBottomSheetModule, InOutComponent
   ],
-  declarations: [LedUiComponent, TransformatorUiComponent,
+  declarations: [
+    LedUiComponent, TransformatorUiComponent,
 
     RelayUiComponent,
     BatteryUiComponent, ResistorUiComponent, SwitchComponent, WireUiComponent,
-    ViewTemplateComponent], exports: [ViewTemplateComponent, WireUiComponent]
+    ViewTemplateComponent],
+  exports: [ViewTemplateComponent, WireUiComponent]
 })
-export class WiringUiModule {}
+export class WiringUiModule { }

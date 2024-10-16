@@ -48,7 +48,8 @@
         .node-wrapper{
             position: absolute;
             transform: translate(-50% ,-50%);
-
+            min-width: 18px;
+            min-height: 18px;
 
 
             .rotationhandle{
@@ -56,6 +57,11 @@
               position: absolute;
               right:-12px;
               top:0px;
+              font-size: smaller;
+              line-height: 17px;
+              &:hover{
+                background-color: blue;
+              }
             }
 
 

@@ -23,7 +23,7 @@ class NestedSwitch extends UINode<Switch> {
   styleUrls: ['./relay-ui.component.less']
 })
 export class RelayUiComponent extends UINode<Relay> implements OnInit {
-  public static templateIcon = 'asset:/assets/icons/relay.png'
+  public static templateIcon = 'asset:assets/icons/relay.png'
 
 
   @ViewChild('innerSwitch', { read: InOutComponent })
@@ -86,9 +86,9 @@ export class RelayUiComponent extends UINode<Relay> implements OnInit {
   }
   getIcon(): string {
     if (!this.node.switch1.enabled) {
-      return `/assets/icons/relay.png`;
+      return `assets/icons/relay.png`;
     }
-    return `/assets/icons/relay_right.png`;
+    return `assets/icons/relay_right.png`;
   }
 
 }

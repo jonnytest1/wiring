@@ -101,7 +101,7 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     this.preloadImages();
   }
   preloadImages() {
-    for (const image of ['/assets/icons/relay_right.png', '/assets/icons/pipico.png']) {
+    for (const image of ['assets/icons/relay_right.png', 'assets/icons/pipico.png']) {
       const img = new Image();
       img.src = image;
     }
@@ -112,12 +112,12 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
   }
   async load(remote = false) {
 
-    this.batteries = await this.serialize.load({
+    this.batteries.push(...await this.serialize.load({
       remote: remote,
       viewRef: this.viewRef,
       displayNodes: this.nodes,
       injectorFactory: () => this.viewRef.injector,
-    });
+    }));
   }
 
   getWires(): Set<Wire> {

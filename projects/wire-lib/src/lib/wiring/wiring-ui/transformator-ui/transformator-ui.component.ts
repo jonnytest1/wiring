@@ -16,7 +16,7 @@ export class TransformatorUiComponent extends UINode<Transformator> implements O
     super(new Transformator(), injecotr);
     this.initNodes()
   }
-  public static templateIcon = 'asset:/assets/icons/Transformer.svg';
+  public static templateIcon = 'asset:assets/icons/Transformer.svg';
   override initNodes(): void {
     this.node.providingBattery.mockSetUiNode(new MockUiNode(this.node.providingBattery, null as any));
   }

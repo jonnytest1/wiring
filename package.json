@@ -4,10 +4,11 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build wire-lib && ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "buildlib": "ng build wire-lib"
+    "buildlib": "ng build wire-lib",
+    "publish": "npm run build && cd dist/wire-lib && npm publish"
   },
   "private": true,
   "dependencies": {

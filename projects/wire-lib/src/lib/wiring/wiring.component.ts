@@ -62,13 +62,37 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     }
   }>()
 
-  constructor(private cdr: ChangeDetectorRef,
-    private viewRef: ViewContainerRef,
+  constructor(
+    private readonly cdr: ChangeDetectorRef,
+    private readonly viewRef: ViewContainerRef,
     public data: WiringDataService,
     public serialize: LocalStorageSerialization) {
 
     this.batteries = [];
     const structureCache = []
+
+    const url = new URL(location.href)
+
+    const example = url.searchParams.get("template")
+
+    if (example) {
+      this.serialize.load({
+        remote: true,
+        viewRef: this.viewRef,
+        displayNodes: this.nodes,
+        injectorFactory: () => this.viewRef.injector,
+        templateName: example
+      }).then(bats => {
+        this.batteries.push(...bats)
+
+        if (url.searchParams.has("enablebatteries")) {
+          bats.forEach(bat => {
+            bat.enabled = true
+          })
+        }
+      })
+    }
+
 
     this.interval = setInterval(() => {
       this.cdr.markForCheck();

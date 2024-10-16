@@ -59,13 +59,20 @@ export class LocalStorageSerialization {
     if (options.remote) {
       const jsonStrings = await this.getTemplates();
 
-      const picked: string = await this.bottomSheet.open(ExamplePickerComponent, {
-        data: jsonStrings
-      })
-        .afterDismissed()
-        .toPromise();
+      if (options.templateName) {
+        const choice = jsonStrings.find(json => json.name === options.templateName)
+        parsed = JSON.parse(choice.content)
+      } else {
+        const picked: string = await this.bottomSheet.open(ExamplePickerComponent, {
+          data: jsonStrings
+        })
+          .afterDismissed()
+          .toPromise();
 
-      parsed = JSON.parse(picked)
+        parsed = JSON.parse(picked)
+      }
+
+
     } else {
       const netStr = localStorage.getItem('el_network');
 

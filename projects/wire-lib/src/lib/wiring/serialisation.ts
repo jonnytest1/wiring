@@ -29,7 +29,7 @@ export interface FromJsonOptions {
     [key: string]: FromJson<typeof key>
   }
 
-
+  templateName?: string
 }
 
 

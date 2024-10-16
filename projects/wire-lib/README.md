@@ -2,7 +2,7 @@
 
 ## Demo
 
-[https://j0nny.dev/wiring](https://j0nny.dev/wiring)
+[https://j0nny.dev/wiring](https://j0nny.dev/wiring?template=pico+demo&enablebatteries)
 
 # Setup
 

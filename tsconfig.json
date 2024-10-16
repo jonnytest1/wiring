@@ -25,9 +25,12 @@
       "ES2022",
       "dom"
     ],
+    "types": [
+      "node"
+    ],
     "paths": {
-      "wire-lib": [
-        "dist/wire-lib"
+      "dev-wire-lib": [
+        "./projects/wire-lib/src/public-api.ts"
       ]
     }
   },

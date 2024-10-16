@@ -3,12 +3,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { BrowserModule } from '@angular/platform-browser';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { WiringModule, WiringComponent, templateService, examples } from "wire-lib"
+import { WiringModule, WiringComponent, templateService, examples } from "dev-wire-lib"
 
 @NgModule({
-  declarations: [
-
-  ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -29,7 +26,4 @@ export class RootMOdule { }
 
 
 
-platformBrowserDynamic().bootstrapModule(RootMOdule, {
-
-})
-  .catch(err => console.error(err));
+platformBrowserDynamic().bootstrapModule(RootMOdule)

@@ -3,7 +3,17 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/app",
-    "types": []
+    "types": [
+      "node"
+    ],
+    "paths": {
+      "dev-wire-lib": [
+        "./projects/wire-lib/src/public-api.ts"
+      ],
+      "@angular/*": [
+        "./node_modules/@angular/*"
+      ]
+    }
   },
   "files": [
     "src/main.ts"

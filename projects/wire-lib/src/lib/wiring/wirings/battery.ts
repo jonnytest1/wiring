@@ -1,5 +1,4 @@
 
-import { iterateJsonStringify } from '../../utils/json-stringify-iterator';
 import type { FromJsonOptions } from '../serialisation';
 import { JsonSerializer } from '../serialisation';
 import { Collection } from './collection';
@@ -9,7 +8,6 @@ import { noResistance } from './resistance-return';
 import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ResistanceReturn, Wiring } from './wiring.a';
 
 export class Battery extends Collection {
-  static jsonStringifyTime: number;
 
   constructor(public voltage: number | null, ampereHours: number) {
     super(null, null);
@@ -158,57 +156,6 @@ export class Battery extends Collection {
       maxAmpere: this.maxAmpereSeconds === Infinity ? "Infinity" : this.maxAmpereSeconds
     };
   }
-
-  static fromJSON(fromJSON: jsonType, options: FromJsonOptions): Battery {
-    if (typeof fromJSON !== "string") {
-
-      if (fromJSON.charge == "Infinity") {
-        fromJSON.charge = Infinity
-      }
-      if (fromJSON.maxAmpere == "Infinity") {
-        fromJSON.maxAmpere = Infinity
-      }
-      const battery = new Battery(fromJSON.voltage, +fromJSON.charge ?? 0.001);
-      battery.enabled = fromJSON.enabled;
-      battery.maxAmpereSeconds = +fromJSON.maxAmpere ?? +fromJSON.charge ?? 0.0001;
-      JsonSerializer.createUiRepresation(battery, fromJSON as any, options);
-
-      const prov = fromJSON.prov
-      if ("type" in prov) {
-        const provType = prov.type as string
-        if (options.elementMap[provType]) {
-          const outC = options.elementMap[provType].fromJSON(prov, {
-            ...options,
-            inC: battery.outC,
-          });
-          if (outC) {
-            outC.connect(battery.inC);
-          }
-        } else {
-          throw new Error('missing serialisation for ' + prov);
-        }
-
-      } else {
-        throw new Error('missing serialisation for ' + prov);
-      }
-
-      return battery;
-    }
-
-  }
-
-
-  jsonStringify() {
-    try {
-      Battery.jsonStringifyTime = Date.now()
-
-
-      return iterateJsonStringify(this)
-    } finally {
-      Battery.jsonStringifyTime = null
-    }
-  }
-
 
 }
 

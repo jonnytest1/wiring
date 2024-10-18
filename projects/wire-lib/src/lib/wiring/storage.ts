@@ -3,11 +3,12 @@ import { MatBottomSheet } from '@angular/material/bottom-sheet';
 import { ResolvablePromise } from '../utils/resolvable-promise';
 import { ExamplePickerComponent } from './example-wires/example-picker/example-picker.component';
 import { NODE_TEMPLATES } from './node-templates';
-import type { FromJson, FromJsonOptions } from './serialisation';
+import { wiringJsonStringify, type FromJson, type FromJsonOptions } from './serialisation';
 import { Battery } from './wirings/battery';
 import { ParrallelWire } from './wirings/parrallel-wire';
 import { ToggleSwitch } from './wirings/toggle-switch';
 import { Wire } from './wirings/wire';
+import { serialize, startSerialize } from './wiring-serialisation.ts/main-serialisation';
 
 
 export const templateService = new InjectionToken<() => Promise<Array<{ name: string, content: string }>>>("loadtemplates")
@@ -47,7 +48,7 @@ export class LocalStorageSerialization {
 
     for (const battery of batteries) {
       // stringify battery individually, cause no key is used to break up loops
-      nets.push(battery.jsonStringify())
+      nets.push(wiringJsonStringify(battery))
     }
     debugger
     const json = JSON.stringify(nets);
@@ -89,13 +90,15 @@ export class LocalStorageSerialization {
 
     const controlRefsinitialized = new ResolvablePromise<void>();
 
-    const batteries = parsed.map(obj => Battery.fromJSON(obj, {
+
+    const batteries = parsed.map(obj => startSerialize<Battery>(obj, {
       ...options,
       elementMap: this.serialisationMap as FromJsonOptions["elementMap"],
       controlRefs: controlRegfs,
       constorlRefsInitialized: controlRefsinitialized.prRef,
-      controllerRefs: controllerRefs
-    }));
+      controllerRefs: controllerRefs,
+      loadElement: serialize
+    }).node);
 
     Object.keys(controllerRefs).forEach(key => {
       const controller = controllerRefs[key];

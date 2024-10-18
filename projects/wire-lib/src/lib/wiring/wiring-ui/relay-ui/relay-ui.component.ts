@@ -49,7 +49,10 @@ export class RelayUiComponent extends UINode<Relay> implements OnInit {
   constructor(inj: Injector) {
     super(new Relay(), inj);
 
-
+    this.on("afterViewInit", () => {
+      this.node.switch1.uiNode.inOutComponent = this.outerSwitchInOut;
+      this.switch2uiNode.inOutComponent = this.innerSwitchInOut;
+    })
   }
   override getWires(): Array<Wire> {
     const wires = [];
@@ -78,11 +81,6 @@ export class RelayUiComponent extends UINode<Relay> implements OnInit {
     this.node.switch1.uiNode = new NestedSwitch(this.node.switch1, null);
     this.switch2uiNode = new NestedSwitch({} as any, null);
     this.nestedSwitchColelction = new Collection(null, this.node.switch1.negatedOutC);
-  }
-
-  ngAfterViewInit() {
-    this.node.switch1.uiNode.inOutComponent = this.outerSwitchInOut;
-    this.switch2uiNode.inOutComponent = this.innerSwitchInOut;
   }
   getIcon(): string {
     if (!this.node.switch1.enabled) {

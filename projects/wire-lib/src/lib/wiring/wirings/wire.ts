@@ -65,16 +65,7 @@ export class Wire extends Collection {
     return wire;
   }
 
-  static fromJSON(json: any, context: FromJsonOptions): Wire {
-    const wire = new Wire(context.inC);
-    if (json.connectedWire == 'BatteryRef') {
-      return wire;
-    }
 
-    const connected = context.elementMap[json.connectedWire.type].fromJSON(json.connectedWire, { ...context, wire });
-
-    return connected;
-  }
   override getTotalResistance(f: Wiring, options: GetResistanceOptions): ResistanceReturn {
     return this.outC.getTotalResistance(this, options);
   }

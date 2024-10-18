@@ -1,5 +1,5 @@
 
-import { Directive, Injector, TemplateRef, ViewChild } from '@angular/core';
+import { ComponentRef, DestroyRef, Directive, inject, Injector, TemplateRef, ViewChild } from '@angular/core';
 
 import type { Vector2 } from '../util/vector';
 import type { Collection } from '../wirings/collection';
@@ -8,9 +8,13 @@ import { InOutComponent } from './in-out/in-out.component';
 import type { MatSnackBarRef } from '@angular/material/snack-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import type { ParrallelWire } from '../wirings/parrallel-wire';
+import { ActivatedRoute, Router } from '@angular/router';
+import { interval, takeUntil, takeWhile, timer } from 'rxjs';
+import type { WireQueryParams } from '../wire-query-params';
+import { TypedEventEmitter } from '../util/typed-event-emitter';
 
 @Directive()
-export abstract class UINode<T extends Collection = Collection> {
+export abstract class UINode<T extends Collection = Collection> extends TypedEventEmitter<{ afterViewInit: void }> {
 
   private position: Vector2;
 
@@ -24,8 +28,55 @@ export abstract class UINode<T extends Collection = Collection> {
   public inOutComponent?: InOutComponent;
   snackbarRef: MatSnackBarRef<any>;
 
+  activeRoute = inject(ActivatedRoute)
+
+
+  destroy = inject(DestroyRef)
+
+  router = inject(Router)
+  alive: boolean;
+
   constructor(public node: T, private injector: Injector) {
+    super()
     node.uiNode = this;
+
+
+    this.alive = true
+    this.destroy.onDestroy(() => {
+      this.alive = false
+    })
+
+
+
+  }
+
+
+
+
+  ngAfterViewInit(): "do not override use event emitter" {
+
+    this.emit("afterViewInit", undefined)
+
+    this.activeRoute.queryParams
+      .pipe(
+
+        takeWhile(() => this.alive)
+      )
+      .subscribe((params: WireQueryParams) => {
+        if (params.active && params.active === this.node.nodeUuid) {
+          if (!this.optionsTemplate) {
+            return;
+          }
+          const snackbar = this.injector.get(MatSnackBar);
+          this.snackbarRef = snackbar.openFromTemplate(this.optionsTemplate);
+
+        } else {
+          this.snackbarRef?.dismiss()
+        }
+
+
+      })
+    return "do not override use event emitter"
   }
 
   initNodes() {
@@ -33,11 +84,12 @@ export abstract class UINode<T extends Collection = Collection> {
   }
 
   openSnackbar() {
-    if (!this.optionsTemplate) {
-      return;
-    }
-    const snackbar = this.injector.get(MatSnackBar);
-    this.snackbarRef = snackbar.openFromTemplate(this.optionsTemplate);
+    this.router.navigate([], {
+      queryParams: {
+        active: this.node.nodeUuid
+      },
+      queryParamsHandling: "merge"
+    })
   }
 
   getWires(): Array<Wire | ParrallelWire> {

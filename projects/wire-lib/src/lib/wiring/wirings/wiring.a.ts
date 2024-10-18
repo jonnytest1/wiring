@@ -1,3 +1,4 @@
+import { v4 } from 'uuid';
 import type { UINode } from '../wiring-ui/ui-node';
 import type { RegisterOptions } from './interfaces/registration';
 
@@ -40,6 +41,8 @@ export interface ResistanceReturn {
 export abstract class Wiring {
   name?: string;
   uiNode?: UINode;
+
+  nodeUuid?: string = v4()
 
   // controlContainer?: SerialConnected;
 

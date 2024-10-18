@@ -7,6 +7,7 @@ import type { Connection } from './wirings/connection';
 import type { ParrallelWire } from './wirings/parrallel-wire';
 import type { Wire } from './wirings/wire';
 import type { Wiring } from './wirings/wiring.a';
+import { iterateJsonStringify } from '../utils/json-stringify-iterator';
 
 
 export interface ControllerRef {
@@ -30,6 +31,9 @@ export interface FromJsonOptions {
   }
 
   templateName?: string
+
+
+  loadElement: (json, context: FromJsonOptions) => { node: unknown, wire: Wire }
 }
 
 
@@ -38,7 +42,7 @@ export interface FromJson<T extends string = ""> {
 
   uiConstructor?: NodeTemplate,
 
-  fromJSON: (json: any, context: FromJsonOptions) => T extends "Battery" ? Battery : Wire
+  //fromJSON: (json: any, context: FromJsonOptions) => T extends "Battery" ? Battery : Wire
 }
 
 
@@ -49,6 +53,33 @@ type UIJson = {
     rotation?: number
   }
 }
+
+let jsonStringifyTime: number;
+
+export function getJsonStringifyTime() {
+  return jsonStringifyTime
+}
+
+
+export function wiringJsonStringify(node: Battery) {
+  try {
+    jsonStringifyTime = Date.now()
+    return iteratationWiringStringify(node)
+  } finally {
+    jsonStringifyTime = null
+  }
+}
+
+
+function iteratationWiringStringify(node: Wiring) {
+  const jsonRepresentation = iterateJsonStringify(node, {}, iteratationWiringStringify);
+  if (node.nodeUuid) {
+    jsonRepresentation["nodeUuid"] = node.nodeUuid
+  }
+
+  return jsonRepresentation
+}
+
 
 export class JsonSerializer {
 

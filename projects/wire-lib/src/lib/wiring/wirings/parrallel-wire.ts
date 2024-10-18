@@ -286,7 +286,7 @@ export class ParrallelWire extends Wiring {
         returnWire = wire;
         continue
       }
-      const connected = context.elementMap[out.type].fromJSON(out, { ...context, wire: wire })
+      const connected = context.loadElement(out, { ...context, wire: wire })
       if (!returnWire) {
         returnWire = connected
       }

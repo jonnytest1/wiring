@@ -9,7 +9,7 @@ interface Context {
   keys?: Array<string>
 }
 
-export function iterateJsonStringify(obj: any, context: Context = {}) {
+export function iterateJsonStringify(obj: any, context: Context = {}, stringifyFnc = iterateJsonStringify) {
   let initial = false
   if (!context.parents) {
     context.parents = []
@@ -36,10 +36,10 @@ export function iterateJsonStringify(obj: any, context: Context = {}) {
 
   for (const key in obj) {
 
-    obj[key] = iterateJsonStringify(obj[key], {
+    obj[key] = stringifyFnc(obj[key], {
       ...context,
       keys: [...context.keys, key]
-    })
+    }, stringifyFnc)
   }
 
   if (initial) {

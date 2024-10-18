@@ -6,7 +6,7 @@ import { v4 as uuid } from 'uuid';
 import { Battery } from '../battery';
 import { noConnection, noResistance } from '../resistance-return';
 import { Collection } from '../collection';
-import { JsonSerializer, type FromJsonOptions } from '../../serialisation';
+import { getJsonStringifyTime, JsonSerializer, type FromJsonOptions } from '../../serialisation';
 import { MicroPythonExecuter } from './micropython-lib/executer';
 export type PinMode = "OUT" | "IN"
 export class PiPico extends Collection {
@@ -68,7 +68,6 @@ export class PiPico extends Collection {
   jsonActive = false
   jsonStringifyTs: number;
   resistance: number;
-  static jsonRefPinId: number;
   executer: MicroPythonExecuter;
 
 
@@ -410,10 +409,10 @@ export class PiPico extends Collection {
   }
 
   override toJSON(from, context) {
-    if (!Battery.jsonStringifyTime) {
+    if (!getJsonStringifyTime()) {
       throw new Error("deprecated call")
     }
-    if (this.jsonStringifyTs === Battery.jsonStringifyTime) {
+    if (this.jsonStringifyTs === getJsonStringifyTime()) {
       return {
         type: this.constructor.name,
         ref: this.instanceUuid,
@@ -422,7 +421,7 @@ export class PiPico extends Collection {
     }
 
 
-    this.jsonStringifyTs = Battery.jsonStringifyTime
+    this.jsonStringifyTs = getJsonStringifyTime()
     const con = {}
     if (!this.batteryConnection) {
       this.getBatteryConnection({
@@ -459,37 +458,5 @@ export class PiPico extends Collection {
     }
   }
 
-
-  static fromJSON(json: any, context: FromJsonOptions) {
-    if (json.ref) {
-      this.jsonRefPinId = json.pinConnection
-      return context.wire
-    }
-    const piPico = new PiPico()
-    piPico.instanceUuid = json.uuid
-    if (json.code) {
-      piPico.script = json.code
-    }
-    JsonSerializer.createUiRepresation(piPico, json, context)
-
-
-    context.wire.connect(piPico.pinMap[piPico.tagMap.inputPwr[0]].con)
-
-    for (const connection in json.connections) {
-
-      const con = piPico.pinMap[+connection]
-      const conenctionJson = json.connections[connection]
-      con.mode = conenctionJson.mode
-      con.outputValue = conenctionJson.outputValue
-      const endWire = context.elementMap[conenctionJson.connection.type].fromJSON(conenctionJson.connection, { ...context, inC: con.con })
-      endWire.connect(piPico.pinMap[PiPico.jsonRefPinId].con)
-    }
-    const batteryDef = json.batteryCon
-    const batteryConnection = piPico.pinMap[batteryDef.id].con
-
-
-    return context.elementMap[batteryDef.connection.type].fromJSON(batteryDef.connection, { ...context, inC: batteryConnection })
-
-  }
 
 }

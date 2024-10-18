@@ -32,19 +32,4 @@ export class Relay extends Resistor implements ControllerRef {
       this.setSwitchOneEnabled(true)
     }
   }
-
-
-  static override fromJSON(json: any, context: FromJsonOptions): Wire {
-    const self = new Relay();
-    self.controlRef = json.uuid
-    context.controllerRefs[json.uuid] = self;
-    if (context.wire) {
-      context.wire.connect(self.inC)
-    }
-    JsonSerializer.createUiRepresation(self, json, context)
-    const connected = context.elementMap[json.outC.type].fromJSON(json.outC, { ...context, inC: self.outC })
-
-    //JsonSerializer.createUiRepresation(tSwitch, json, context)
-    return connected
-  }
 }

@@ -11,11 +11,12 @@ import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { WireUiComponent } from './wire-ui/wire-ui.component';
 import { RelayUiComponent } from './relay-ui/relay-ui.component';
 import { TransformatorUiComponent } from './transformator-ui/transformator-ui.component';
+import { RouterModule } from '@angular/router';
 
 @NgModule({
 
   imports: [
-    CommonModule, MatIconModule, MatBottomSheetModule, InOutComponent
+    CommonModule, MatIconModule, MatBottomSheetModule, InOutComponent, RouterModule.forRoot([])
   ],
   declarations: [
     LedUiComponent, TransformatorUiComponent,

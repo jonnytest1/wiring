@@ -67,19 +67,4 @@ export class Resistor extends Collection implements Wiring {
     this.uuid = json['uuid']
     this.resistance = json['resistance']
   }
-
-
-
-
-  static fromJSON(json: any, context: FromJsonOptions): Wire {
-    const self = new Resistor(json.resistance);
-    self.readFromJson(json)
-    if (context.wire) {
-      context.wire.connect(self.inC)
-    }
-    JsonSerializer.createUiRepresation(self, json, context)
-    const connected = context.elementMap[json.outC.type].fromJSON(json.outC, { ...context, inC: self.outC })
-
-    return connected
-  }
 }

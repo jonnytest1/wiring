@@ -65,7 +65,7 @@ export class PicoUiComponent extends UINode<PiPico> implements OnInit {
   }
 
   ngOnInit() {
-
+    debugger
   }
 
 

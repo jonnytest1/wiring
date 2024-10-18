@@ -39,19 +39,4 @@ export class LED extends Resistor {
 
     return returnCurrent
   }
-
-  static override fromJSON(json: any, context: FromJsonOptions): Wire {
-    const self = new LED();
-    self.uuid = json.uuid
-    JsonSerializer.createUiRepresation(self, json, context)
-    if (context.wire) {
-      context.wire.connect(self.inC)
-    }
-    const connected = context.elementMap[json.outC.type].fromJSON(json.outC, { ...context, inC: self.outC })
-
-    return connected
-
-
-
-  }
 }

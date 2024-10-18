@@ -8,8 +8,8 @@
                 "uuid": "8faa3d99-bfe9-4746-bdf5-7608c722ec28",
                 "code": "from machine import Pin, Timer\nled = Pin(16, Pin.OUT)\ntimer = Timer()\ndef blink(timer):\n  led.toggle()\ntimer.init(1, Timer.PERIODIC, blink)",
                 "ui": {
-                    "y": 260,
-                    "x": 970
+                    "y": 230,
+                    "x": 470
                 },
                 "connections": {
                     "16": {
@@ -27,8 +27,8 @@
                                     }
                                 },
                                 "ui": {
-                                    "y": 250,
-                                    "x": 1230,
+                                    "y": 220,
+                                    "x": 730,
                                     "rotation": 180
                                 },
                                 "uuid": "3407b4a7-d387-42f4-8b24-a05a526b7d94"
@@ -49,8 +49,8 @@
         },
         "voltage": 5,
         "ui": {
-            "y": 280,
-            "x": 690
+            "y": 250,
+            "x": 190
         },
         "enabled": false,
         "charge": 1,

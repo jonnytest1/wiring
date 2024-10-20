@@ -265,7 +265,6 @@ void loop()
                                 return rt.val(ledClass, instantiate(rt, ledClass, [rt.makeCharArrayFromString("black")]))
                             },
                         }])
-
                         let ledList: TypeValue<ArrayTypeLiteral<typeof ledClass>>
                         rt.regFunc((rt, self, leds, ct) => {
                             ledList = leds
@@ -300,13 +299,8 @@ void loop()
                         }, staticT, "show", [], rt.voidTypeLiteral)
 
                         const instance = instantiate(rt, staticT);
-                        debugger
+
                         rt.defVar("FastLED", staticT, instance)
-                        /* rt.registerTypedef({
-                             Red: "red",
-                             Black: "Black"
-                         }, "CRGB")*/
-                        //TODO
                     }
                 },
                 "mainloop": {

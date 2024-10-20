@@ -6,9 +6,16 @@ import type { Esp32 } from '../../esp32';
 
 
 
-type Member<T extends TypeValue<TypeArg>> = {
+
+type ArrayValueType<TypeArray extends Array<TypeArg>> = { [K in keyof TypeArray]: TypeValue<TypeArray[K]> }
+
+type InitType<Args extends Array<TypeArg>> = {
+    args: ArrayValueType<Args>
+
+}
+type Member<T extends TypeValue<TypeArg>, Arg extends Array<TypeArg> = []> = {
     name: string;
-    initialize: (rt: Runtime, _this: TypeValue<TypeArg>) => T;
+    initialize: (rt: Runtime, _this: TypeValue<TypeArg> & InitType<Arg>) => T;
 };
 
 type CharTypeLiteral = {
@@ -25,7 +32,7 @@ type IntTypeLiteral = { type: 'primitive', name: 'int' }
 
 
 
-type ClassTypeLiteral<T extends string, M extends ReadonlyArray<Member<TypeValue<TypeArg>>>> = {
+type ClassTypeLiteral<T extends string, M extends ReadonlyArray<Member<TypeValue<TypeArg>, Array<TypeArg>>>, InitTypes extends Array<TypeArg> = never> = {
     name: T,
     type: "class"
     cConstructor(rt: Runtime, _this, args)
@@ -82,7 +89,7 @@ type Runtime = {
     getTypeSignature(staticT: TypeArg): string;
     types: Record<string, TypeArg>;
     defVar(name: string, varType: TypeArg, init: TypeValue<TypeArg>): unknown;
-    newClass<N extends string, T extends ReadonlyArray<Member<TypeValue<TypeArg>>>>(name: N, members: T, preinit?: (rt: Runtime, args: Array<TypeValue<TypeArg>>) => void): ClassTypeLiteral<N, T>;
+    newClass<N extends string, T extends ReadonlyArray<Member<TypeValue<TypeArg>>>>(name: N, members: T): ClassTypeLiteral<N, T>;
     getStringFromCharArray(of: TypeValue<StringTypeLiteral>): string;
     arrayPointerType<T extends TypeArg>(ofType: T): ArrayTypeLiteral<T>;
     getCompatibleFunc(scope: string, name: string, args: undefined[]): (rt: Runtime, thisObj, args) => any;
@@ -211,7 +218,7 @@ void loop()
         }
 
 
-        function instantiate<C extends ClassTypeLiteral<string, []>>(rt: Runtime, typeArg: C, args: Array<TypeValue<TypeArg>> = []): TypeValue<ClassRef<C["name"]>> {
+        function instantiate<C extends ClassTypeLiteral<string, []>>(rt: Runtime, typeArg: C, args: C extends ClassTypeLiteral<any, any, infer Init> ? ArrayValueType<Init> : []): TypeValue<ClassRef<C["name"]>> {
             const classType = rt.types[rt.getTypeSignature(typeArg)] as ClassTypeLiteral<string, []>
             const _this = {
                 v: {},
@@ -222,6 +229,11 @@ void loop()
             debugger
             return _this as unknown as TypeValue<ClassRef<C["name"]>>
         }
+
+        function newClassBound<Init extends Array<TypeArg>>(rt: Runtime) {
+            return rt.newClass as <N extends string, T extends ReadonlyArray<Member<TypeValue<TypeArg>, Init>>>(name: N, members: T, preinit?: (rt: Runtime, args: Array<TypeValue<TypeArg>>) => void) => ClassTypeLiteral<N, T, Init>;
+        }
+
         const returnV = window.JSCPP.run(code, "", {
             includes: {
                 "Arduino.h": {
@@ -236,12 +248,13 @@ void loop()
                 },
                 "FastLED.h": {
                     load: (rt) => {
-                        const ledClass = rt.newClass("CRGB", [
+                        const ledClass = newClassBound<[StringTypeLiteral]>(rt)("CRGB", [
                             {
                                 name: "color" as const,
                                 initialize(rt, _this) {
-                                    if (_this.args?.[0]) {
-                                        return _this.args?.[0] as TypeValue<StringTypeLiteral>
+                                    const firstARg = _this.args?.[0];
+                                    if (firstARg) {
+                                        return _this.args?.[0]
                                     }
                                     return rt.val(rt.arrayPointerType(rt.charTypeLiteral), null)
                                 },
@@ -253,8 +266,8 @@ void loop()
 
                         }, ledClass, rt.makeOperatorFuncName("="), [ledClass], rt.voidTypeLiteral)
 
-
-                        const staticT = rt.newClass("CRGBStatic", [{
+                        type inits = typeof ledClass extends ClassTypeLiteral<any, any, infer U> ? U : never
+                        const staticT = newClassBound<[]>(rt)("CRGBStatic", [{
                             name: "Red" as const,
                             initialize<T>(rt: Runtime, _this) {
                                 return rt.val(ledClass, instantiate(rt, ledClass, [rt.makeCharArrayFromString("red")]))
@@ -298,7 +311,7 @@ void loop()
                             environment.setLedMatrix(leds)
                         }, staticT, "show", [], rt.voidTypeLiteral)
 
-                        const instance = instantiate(rt, staticT);
+                        const instance = instantiate(rt, staticT, []);
 
                         rt.defVar("FastLED", staticT, instance)
                     }

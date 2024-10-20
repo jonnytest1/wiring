@@ -58,6 +58,9 @@ interface FunctionTypeLiteral<RetType extends TypeArg, Sig extends Array<TypeArg
 }
 
 
+type FncReturnType<T extends FunctionTypeLiteral<TypeArg, Array<TypeArg>>> = T extends FunctionTypeLiteral<infer Ret, Array<TypeArg>> ? Ret : never
+
+
 
 type TypeValue<T extends TypeArg> = {
     t: T,
@@ -186,6 +189,10 @@ void setup()
 
 int loopCount=0;
 
+int sum(){
+  return 123;
+}
+
 void loop()
 {
 
@@ -199,6 +206,7 @@ void loop()
     debug("test"); 
     FastLED.show();
     loopCount++;
+    debug2(sum);
 
 }
             
@@ -208,13 +216,16 @@ void loop()
 
         let output = "";
 
-        function consumeFunction<Fnc extends TypeValue<FunctionTypeLiteral<TypeArg, Array<TypeArg>>>>(rt: Runtime, fnc: Fnc, args: Array<TypeValue<TypeArg>> = []) {
+        function consumeFunction<Fnc extends TypeValue<FunctionTypeLiteral<TypeArg, Array<TypeArg>>>>(rt: Runtime, fnc: Fnc, args: Array<TypeValue<TypeArg>> = []): TypeValue<FncReturnType<Fnc["t"]>> {
             const ret = []
-
-            for (const val of fnc.v.target(rt, {}, [])) {
+            const obj = {};
+            for (const val of fnc.v.target(rt, obj, [])) {
                 ret.push(val)
             }
-            return ret
+            if (fnc.t.retType) {
+                return ret[0]
+            }
+            return ret as never
         }
 
 
@@ -226,23 +237,21 @@ void loop()
                 args
             }
             classType.cConstructor(rt, _this, args)
-            debugger
             return _this as unknown as TypeValue<ClassRef<C["name"]>>
         }
 
         function newClassBound<Init extends Array<TypeArg>>(rt: Runtime) {
-            return rt.newClass as <N extends string, T extends ReadonlyArray<Member<TypeValue<TypeArg>, Init>>>(name: N, members: T, preinit?: (rt: Runtime, args: Array<TypeValue<TypeArg>>) => void) => ClassTypeLiteral<N, T, Init>;
+            return rt.newClass.bind(rt) as <N extends string, T extends ReadonlyArray<Member<TypeValue<TypeArg>, Init>>>(name: N, members: T, preinit?: (rt: Runtime, args: Array<TypeValue<TypeArg>>) => void) => ClassTypeLiteral<N, T, Init>;
         }
 
         const returnV = window.JSCPP.run(code, "", {
             includes: {
                 "Arduino.h": {
                     load: (rt) => {
-                        /*rt.regFunc(async function* (rt, _this, setupFnc, loopFnc) {
+                        rt.regFunc((rt, _this, setupFnc) => {
                             debugger
-                            yield delay(10000)
                             return rt.val(rt.voidTypeLiteral, undefined);
-                        }, "global", "delay", [rt.intTypeLiteral], rt.voidTypeLiteral);*/
+                        }, "global", "delay", [rt.intTypeLiteral], rt.voidTypeLiteral);
                         //TODO
                     }
                 },
@@ -266,7 +275,6 @@ void loop()
 
                         }, ledClass, rt.makeOperatorFuncName("="), [ledClass], rt.voidTypeLiteral)
 
-                        type inits = typeof ledClass extends ClassTypeLiteral<any, any, infer U> ? U : never
                         const staticT = newClassBound<[]>(rt)("CRGBStatic", [{
                             name: "Red" as const,
                             initialize<T>(rt: Runtime, _this) {
@@ -334,6 +342,14 @@ void loop()
                             console.log(debugStr)
                             return rt.val(rt.voidTypeLiteral, undefined);
                         }, "global", "debug", [rt.arrayPointerType(rt.charTypeLiteral)], rt.voidTypeLiteral);
+
+
+                        rt.regFunc(function (rt, _this, callback) {
+                            debugger
+                            const val = consumeFunction(rt, callback)
+                            debugger
+                            return rt.val(rt.voidTypeLiteral, undefined);
+                        }, "global", "debug2", [rt.functionType(rt.intTypeLiteral, [])], rt.voidTypeLiteral);
                     }
                 }
             },

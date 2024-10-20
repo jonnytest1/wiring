@@ -32,11 +32,12 @@ export abstract class UINode<T extends Collection = Collection> extends TypedEve
 
 
   destroy = inject(DestroyRef)
+  injector = inject(Injector)
 
   router = inject(Router)
   alive: boolean;
 
-  constructor(public node: T, private injector: Injector) {
+  constructor(public node: T, inj?) {
     super()
     node.uiNode = this;
 

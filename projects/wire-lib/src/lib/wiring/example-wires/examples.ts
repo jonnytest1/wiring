@@ -1,6 +1,7 @@
 import parrallel from "./parrallel.template.json"
 
 import pico from "./pico.template.json"
+import esp from "./esp.tempalte.json"
 import relay from "./relay.template.json"
 import transformator from "./transformator.template.json"
 
@@ -19,6 +20,9 @@ export const examples = [
     }, {
         name: "transformator demo",
         content: JSON.stringify(transformator)
+    }, {
+        name: "esp demo",
+        content: JSON.stringify(esp)
     },
 ]
 

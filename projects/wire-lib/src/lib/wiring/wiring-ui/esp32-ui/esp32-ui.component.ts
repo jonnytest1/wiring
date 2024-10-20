@@ -1,54 +1,44 @@
-import { Component, OnInit, Injector, ViewChild, type ElementRef, ViewChildren, type QueryList, type AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChildren, type Injector, type QueryList } from '@angular/core';
 import { UINode } from '../ui-node';
-import { PiPico } from '../../wirings/microprocessor/pipico';
+import { Esp32 } from '../../wirings/microprocessor/esp32';
+import { Collection } from '../../wirings/collection';
 import { InOutComponent } from '../in-out/in-out.component';
 import { CommonModule } from '@angular/common';
-import type { ParrallelWire } from '../../wirings/parrallel-wire';
 import type { Wire } from '../../wirings/wire';
-import type { Switch } from '../../wirings/switch';
-import { Collection } from '../../wirings/collection';
-
+import type { ParrallelWire } from '../../wirings/parrallel-wire';
 
 @Component({
-  selector: 'app-pico-ui',
-  templateUrl: './pico-ui.component.html',
-  styleUrls: ['./pico-ui.component.scss'],
+  selector: 'app-esp32-ui',
+  templateUrl: './esp32-ui.component.html',
+  styleUrls: ['./esp32-ui.component.scss'],
   standalone: true,
   imports: [InOutComponent, CommonModule]
 })
-export class PicoUiComponent extends UINode<PiPico> {
+export class Esp32UiComponent extends UINode<Esp32> {
 
+  public static templateIcon = "asset:assets/icons/esp8x8.png"
+  topUiComponets: Collection[];
+  bottomUiComponents: Collection[];
 
   @ViewChildren("inout")
   connectorElements: QueryList<InOutComponent>
 
-  public static templateIcon = "asset:assets/icons/pipico.png"
-
-
-  topUiComponets: Array<Collection>
-
-  @ViewChild("textscr")
-  ref: ElementRef<HTMLTextAreaElement>
-  bottomUiComponents: Collection[];
-
-  getIcon(): string {
-    return "assets/icons/pipico.png"
+  override getIcon(): string {
+    return Esp32UiComponent.templateIcon
   }
 
-  constructor(injector: Injector) {
-    super(new PiPico(), injector)
-
+  constructor() {
+    super(new Esp32())
 
 
   }
-
-
-  templateIcon: string;
 
   override initNodes(): void {
     this.topUiComponets = this.node.topRow.map(pin => new Collection(pin, null))
     this.bottomUiComponents = this.node.bottomRow.map(pin => new Collection(pin, null))
   }
+
+
   override getWires(): Array<Wire | ParrallelWire> {
     const wires = [];
 
@@ -61,7 +51,6 @@ export class PicoUiComponent extends UINode<PiPico> {
     return wires
   }
 
-
   override getInOutComponent(id: string) {
     return this.connectorElements.find(el => el.node.inC.id === id)
   }
@@ -69,4 +58,5 @@ export class PicoUiComponent extends UINode<PiPico> {
   getTextAreaHeight() {
     return Math.min(this.node.script.split('\n').length, 10) * 18 + 'px'
   }
+
 }

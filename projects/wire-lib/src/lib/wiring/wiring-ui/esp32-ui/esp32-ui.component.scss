@@ -1,0 +1,24 @@
+
+.esp{
+    display: flex;
+
+    .connector{
+        position: absolute;
+        
+
+        &.top{
+            top:-8px;
+        }
+
+        &.bottom{
+            bottom:-8px
+        }
+    }
+
+    img{
+        width: 180px;
+    }
+}
+
+
+

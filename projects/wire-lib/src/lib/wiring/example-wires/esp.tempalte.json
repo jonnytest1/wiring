@@ -1,0 +1,33 @@
+[
+    {
+        "type": "Battery",
+        "prov": {
+            "type": "Wire",
+            "connectedWire": {
+                "type": "Esp32",
+                "uuid": "8faa3d99-bfe9-4746-bdf5-7608c722ec28",
+                "code": "from machine import Pin, Timer\nled = Pin(16, Pin.OUT)\ntimer = Timer()\ndef blink(timer):\n  led.toggle()\ntimer.init(1, Timer.PERIODIC, blink)",
+                "ui": {
+                    "y": 230,
+                    "x": 470
+                },
+                "connections": {},
+                "batteryCon": {
+                    "id": 9,
+                    "connection": {
+                        "type": "Wire",
+                        "connectedWire": "BatteryRef"
+                    }
+                }
+            }
+        },
+        "voltage": 5,
+        "ui": {
+            "y": 450,
+            "x": 190
+        },
+        "enabled": false,
+        "charge": 1,
+        "maxAmpere": 3600
+    }
+]

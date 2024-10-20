@@ -1,9 +1,11 @@
 import { jsPython } from 'jspython-interpreter'
 import { boundPins } from './pin'
 import { TimerContext } from './timer'
-import type { PiPico } from '../pipico'
+import type { PiPico } from '../../pipico'
+import { Executer } from '../executer'
+import type { MicroProcessorBase } from '../../microprocessor-base'
 
-export class MicroPythonExecuter {
+export class MicroPythonExecuter extends Executer {
 
   pythonInstance: any
   timer: TimerContext
@@ -17,18 +19,16 @@ def blink(timer):
 timer.init(2.5, Timer.PERIODIC, blink)`
 
 
-  running = false;
 
-
-  constructor(environment: PiPico) {
-
+  constructor(environment: MicroProcessorBase) {
+    super()
     this.timer = new TimerContext()
     this.prepare(environment)
   }
 
 
-  start() {
-    this.running = true
+  override start() {
+    super.start()
     this.pythonInstance.evaluate(this.code).then(resp => {
 
       console.log("finished synchronous execution")
@@ -36,7 +36,7 @@ timer.init(2.5, Timer.PERIODIC, blink)`
   }
 
 
-  prepare(environment: PiPico) {
+  prepare(environment: MicroProcessorBase) {
     this.pythonInstance = jsPython()
     this.pythonInstance.registerPackagesLoader((p) => {
 
@@ -64,8 +64,8 @@ timer.init(2.5, Timer.PERIODIC, blink)`
   }
 
 
-  kill() {
-    this.running = false
+  override kill() {
+    super.kill()
     this.timer.stop()
   }
 

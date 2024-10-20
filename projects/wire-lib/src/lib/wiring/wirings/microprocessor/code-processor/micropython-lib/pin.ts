@@ -1,10 +1,11 @@
 
-import type { PinMode, PiPico } from '../pipico'
+import type { MicroProcessorBase } from '../../microprocessor-base'
+import type { PinMode, PiPico } from '../../pipico'
 
 
 
 
-export function boundPins(pipico: PiPico) {
+export function boundPins(pipico: MicroProcessorBase) {
   function Pin(pin, mode: PinMode) {
 
     pipico.pinMap[pin].mode = mode

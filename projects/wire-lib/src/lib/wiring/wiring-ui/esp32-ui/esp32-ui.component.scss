@@ -18,6 +18,13 @@
     img{
         width: 180px;
     }
+
+    .led{
+        position: absolute;
+        width:12px;
+        height:12px;
+        background-color:red
+    }
 }
 
 

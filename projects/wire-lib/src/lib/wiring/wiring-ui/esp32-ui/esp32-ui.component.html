@@ -29,6 +29,18 @@
       </div>
     </app-in-out>
   </ng-container>
+
+
+  <ng-container *ngFor="let ledRow of node.ledMatrix;let rowIndex=index">
+    <ng-container *ngFor="let led of ledRow;let colindex=index">
+      <div class="led"
+           [style.top]="17+rowIndex*19+'px'"
+           [style.left]="21+colindex*19+'px'"
+           [style.background-color]="led">
+
+      </div>
+    </ng-container>
+  </ng-container>
 </div>
 
 

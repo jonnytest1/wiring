@@ -1,4 +1,5 @@
 import { Connection } from '../connection';
+import { CppExecuter } from './code-processor/c++-lib/executer';
 import type { Executer } from './code-processor/executer';
 import { MicroPythonExecuter } from './code-processor/micropython-lib/executer';
 import { MicroProcessorBase } from './microprocessor-base';
@@ -7,7 +8,8 @@ export class Esp32 extends MicroProcessorBase {
 
     override operationResistance: 2;
 
-    override executer = new MicroPythonExecuter(this);
+    override executer = new CppExecuter(this);
+    ledMatrix: string[][];
 
 
     constructor() {
@@ -18,6 +20,11 @@ export class Esp32 extends MicroProcessorBase {
                 ground: [9]
             }
         })
+    }
+
+
+    setLedMatrix(ledMAtrix: Array<Array<string>>) {
+        this.ledMatrix = ledMAtrix
     }
 
     set script(newScript: string) {

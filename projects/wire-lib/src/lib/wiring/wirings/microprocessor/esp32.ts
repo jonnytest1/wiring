@@ -6,9 +6,9 @@ import { MicroProcessorBase } from './microprocessor-base';
 
 export class Esp32 extends MicroProcessorBase {
 
-    override operationResistance: 2;
+    override operationResistance = 2;
 
-    override executer = new CppExecuter(this);
+    override executer: CppExecuter
     ledMatrix: string[][];
 
 
@@ -20,6 +20,7 @@ export class Esp32 extends MicroProcessorBase {
                 ground: [9]
             }
         })
+        this.executer = new CppExecuter(this);
     }
 
 

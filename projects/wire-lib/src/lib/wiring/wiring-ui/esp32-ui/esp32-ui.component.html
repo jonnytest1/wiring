@@ -34,7 +34,7 @@
   <ng-container *ngFor="let ledRow of node.ledMatrix;let rowIndex=index">
     <ng-container *ngFor="let led of ledRow;let colindex=index">
       <div class="led"
-           [style.top]="17+rowIndex*19+'px'"
+           [style.top]="15+rowIndex*19+'px'"
            [style.left]="21+colindex*19+'px'"
            [style.background-color]="led">
 
@@ -45,9 +45,18 @@
 
 
 <ng-template #options>
-  <textarea #textscr
-            [value]="node.script"
-            [style.height]="getTextAreaHeight()"
-            (change)="node.executer.update(textscr.value)">
-  </textarea>
+  <div class="option">
+    <div #textscr
+         class="codetext"
+         [style.height]="getTextAreaHeight()">
+      <pre contenteditable
+           (blur)="node.executer.update(textscr.textContent)">{{node.script}}</pre>
+    </div>
+    <div class="logs"
+         [style.height]="getTextAreaHeight()">
+      logs:<br>
+      <span *ngFor="let log of node.executer.logs"
+            [style.color]="log.color">{{log.line}}<br></span>
+    </div>
+  </div>
 </ng-template>

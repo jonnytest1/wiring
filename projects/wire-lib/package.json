@@ -1,6 +1,6 @@
 {
   "name": "electronics-lib",
-  "version": "1.0.6",
+  "version": "1.0.27",
   "author": "jonathan heindl",
   "description": "electronics simulator",
   "license": "ISC",
@@ -8,8 +8,8 @@
     "url": "https://github.com/jonnytest1/wiring"
   },
   "peerDependencies": {
-    "@angular/common": "^16.2",
-    "@angular/core": "^16.2"
+    "@angular/common": "*",
+    "@angular/core": "*"
   },
   "dependencies": {
     "jspython-interpreter": "^2.1.15",

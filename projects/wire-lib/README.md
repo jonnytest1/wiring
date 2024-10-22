@@ -14,6 +14,16 @@ add this to index html html>head
 - display WiringComponent
 - add this for material styles
 
+include this in assets of your angular json ,
+
+```
+{
+"glob": "**",
+"input": "./node_modules/electronics-lib/assets/",
+"output": "/assets/"
+}
+```
+
 ```
 @use '@angular/material' as mat;
 

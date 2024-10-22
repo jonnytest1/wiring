@@ -1,8 +1,12 @@
 import { Connection } from '../connection';
-import { CppExecuter } from './code-processor/c++-lib/executer';
+import { CppExecuter, type CppExecuterParams } from './code-processor/c++-lib/executer';
 import type { Executer } from './code-processor/executer';
 import { MicroPythonExecuter } from './code-processor/micropython-lib/executer';
 import { MicroProcessorBase } from './microprocessor-base';
+
+
+export type Esp32Provides = CppExecuterParams
+
 
 export class Esp32 extends MicroProcessorBase {
 
@@ -12,7 +16,7 @@ export class Esp32 extends MicroProcessorBase {
     ledMatrix: string[][];
 
 
-    constructor() {
+    constructor(espOptions?: Esp32Provides) {
         super({
             pinCount: 20,
             tagMap: {
@@ -20,7 +24,7 @@ export class Esp32 extends MicroProcessorBase {
                 ground: [9]
             }
         })
-        this.executer = new CppExecuter(this);
+        this.executer = new CppExecuter(this, espOptions);
     }
 
 

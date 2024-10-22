@@ -8,12 +8,15 @@
     "inlineSources": true,
     "resolveJsonModule": true,
     "strictPropertyInitialization": false,
+    "allowJs": true,
+    "checkJs": false,
     "types": [
       "node"
     ]
   },
   "exclude": [
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "./**/lib/JSCPP.js"
   ],
   "include": [
     "./**/*.ts"

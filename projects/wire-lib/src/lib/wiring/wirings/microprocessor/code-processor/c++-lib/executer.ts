@@ -1,15 +1,19 @@
-import { env } from 'process';
-import type { MicroProcessorBase } from '../../microprocessor-base';
+
 import { Executer } from '../executer';
-import "./lib/JSCPP.js"
+import "./lib/jscpp"
 import type { Esp32 } from '../../esp32';
-import { consumeFunction, instantiate, newClassBound, stringTypeLiteral, type ArrayTypeLiteral, type ClassRef, type ClassTypeLiteral, type FunctionTypeLiteral, type JscppConfig, type Member, type Runtime, type StringTypeLiteral, type TypeArg, type TypeValue } from './jscpp';
-import { pubSubLib } from './libs/mqtt';
+import { consumeFunction, instantiate, newClassBound, stringTypeLiteral, type ArrayTypeLiteral, type ClassRef, type ClassTypeLiteral, type FunctionTypeLiteral, type JscppConfig, type JscppInclude, type Member, type Runtime, type StringTypeLiteral, type TypeArg, type TypeValue } from './jscpp';
 
 
 
 
-
+export type CppExecuterParams = {
+    includes?: JscppInclude,
+    /**
+     * jscpp doesnt currently support all features , use this to map code into a form that works
+     */
+    codemapper?: (code: string) => string
+}
 
 
 
@@ -23,16 +27,22 @@ export class CppExecuter extends Executer {
 
     startime = -1
 
-    constructor(private environment: Esp32) {
+    constructor(private environment: Esp32, private params: CppExecuterParams = {}) {
         super()
 
         this.prepare()
     }
 
     wrappedCode() {
+
+        let code = this.code;
+        if (this.params.codemapper) {
+            code = this.params.codemapper(code)
+        }
+
         return `
         #include <mainloop>
-    ${this.code}
+    ${code}
 int main() {
 
    looptrigger(setup,loop);
@@ -45,11 +55,7 @@ int main() {
 
         this.libs = {
             includes: {
-                "WiFi.h": {
-                    load(runtime) {
-
-                    },
-                },
+                ...this.params.includes ?? {},
                 //  ...pubSubLib(),
                 "Arduino.h": {
                     load: (rt) => {

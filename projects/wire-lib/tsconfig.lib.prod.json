@@ -4,9 +4,14 @@
   "compilerOptions": {
     "resolveJsonModule": true,
     "declarationMap": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "checkJs": true
   },
   "angularCompilerOptions": {
     "compilationMode": "partial"
-  }
+  },
+  "exclude": [
+    "./**/lib/JSCPP.js"
+  ]
 }

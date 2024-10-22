@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChildren, type Injector, type QueryList } from '@angular/core';
+import { Component, inject, OnInit, ViewChildren, type Injector, type QueryList } from '@angular/core';
 import { UINode } from '../ui-node';
 import { Esp32 } from '../../wirings/microprocessor/esp32';
 import { Collection } from '../../wirings/collection';
@@ -6,6 +6,7 @@ import { InOutComponent } from '../in-out/in-out.component';
 import { CommonModule } from '@angular/common';
 import type { Wire } from '../../wirings/wire';
 import type { ParrallelWire } from '../../wirings/parrallel-wire';
+import { esp32LibraryToken } from '../../tokens';
 
 @Component({
   selector: 'app-esp32-ui',
@@ -27,8 +28,14 @@ export class Esp32UiComponent extends UINode<Esp32> {
     return Esp32UiComponent.templateIcon
   }
 
+
+
+
   constructor() {
-    super(new Esp32())
+    const esp32Provides = inject(esp32LibraryToken, {
+      optional: true
+    })
+    super(new Esp32(esp32Provides))
 
 
   }

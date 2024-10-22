@@ -21,11 +21,12 @@ export class CppExecuter extends Executer {
 
     logs: Array<{ color: string, line: string }> = []
 
+    startime = -1
 
-    constructor(environment: Esp32) {
+    constructor(private environment: Esp32) {
         super()
 
-        this.prepare(environment)
+        this.prepare()
     }
 
     wrappedCode() {
@@ -39,11 +40,16 @@ int main() {
 }`
     }
 
-    prepare(environment: Esp32) {
+    prepare() {
         let output = "";
 
         this.libs = {
             includes: {
+                "WiFi.h": {
+                    load(runtime) {
+
+                    },
+                },
                 //  ...pubSubLib(),
                 "Arduino.h": {
                     load: (rt) => {
@@ -53,12 +59,32 @@ int main() {
                         }, "global", "delay", [rt.intTypeLiteral], rt.voidTypeLiteral);
 
                         rt.regFunc((rt, _this, arg) => {
+                            const line = rt.getStringFromCharArray(arg);
+                            console.log("c++ : ", line)
                             this.logs.push({
                                 color: "black",
-                                line: rt.getStringFromCharArray(arg)
+                                line: line
                             })
                             return rt.val(rt.voidTypeLiteral, undefined);
                         }, "global", "print", [stringTypeLiteral(rt)], rt.voidTypeLiteral);
+                        rt.regFunc((rt, _this, arg) => {
+                            console.log("c++ : ", arg.v)
+                            this.logs.push({
+                                color: "black",
+                                line: arg.v + ""
+                            })
+                            return rt.val(rt.voidTypeLiteral, undefined);
+                        }, "global", "print", [rt.longTypeLiteral], rt.voidTypeLiteral);
+
+                        rt.regFunc((rt, _this) => {
+
+                            let millis = Date.now() - this.startime
+                            while (millis > rt.config.limits.long.max) {
+                                millis -= rt.config.limits.long.max
+                            }
+
+                            return rt.val(rt.longTypeLiteral, millis);
+                        }, "global", "millis", [], rt.longTypeLiteral);
                         //TODO
                     }
                 },
@@ -123,7 +149,7 @@ int main() {
                             }
 
 
-                            environment.setLedMatrix(leds);
+                            this.environment.setLedMatrix(leds);
                         }, staticT, "show", [], rt.voidTypeLiteral);
 
                         const instance = instantiate(rt, staticT, []);
@@ -180,9 +206,11 @@ int main() {
     override start(): void {
         super.start()
         try {
+            this.startime = Date.now()
             this.logs.length = 0
             const returnV = window.JSCPP.run(this.wrappedCode(), "", this.libs)
         } catch (e) {
+            console.log(e)
             this.logs.push({ color: "red", line: e.stack })
         }
     }
@@ -199,7 +227,7 @@ int main() {
 
     override kill(): void {
         super.kill()
-
+        this.environment.setLedMatrix([]);
         this.intervals.forEach(i => clearInterval(i))
         this.intervals = []
     }

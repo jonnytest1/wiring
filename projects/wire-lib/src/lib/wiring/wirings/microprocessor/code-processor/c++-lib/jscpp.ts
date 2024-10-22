@@ -19,8 +19,8 @@ export type VoidTypeLiteral = {
 }
 
 export type IntTypeLiteral = { type: 'primitive', name: 'int' }
-
-
+export type LongTypeLiteral = { type: 'primitive', name: 'long' }
+export type LongLongTypeLiteral = { type: 'primitive', name: 'long long' }
 
 
 export type ClassTypeLiteral<T extends string, M extends ReadonlyArray<Member<TypeValue<TypeArg>, Array<TypeArg>>>, InitTypes extends Array<TypeArg> = never> = {
@@ -35,7 +35,14 @@ export type ClassRef<T extends string> = {
     name: T,
     type: "class"
 }
-export type TypeArg = CharTypeLiteral | VoidTypeLiteral | IntTypeLiteral | ClassTypeLiteral<string, []> | ArrayTypeLiteral<TypeArg> | ClassRef<string> | FunctionTypeLiteral<TypeArg, Array<TypeArg>>
+
+export type Primitives = CharTypeLiteral | VoidTypeLiteral | IntTypeLiteral | LongTypeLiteral | LongLongTypeLiteral
+
+export type TypeArg = Primitives | ClassTypeLiteral<string, []> | ArrayTypeLiteral<TypeArg>
+    | ClassRef<string> | FunctionTypeLiteral<TypeArg, Array<TypeArg>>
+
+
+
 
 export interface ArrayTypeLiteral<T extends TypeArg> {
     type: "pointer",
@@ -66,7 +73,9 @@ export type TypeArgValue<T extends TypeArg> = T extends ArrayTypeLiteral<infer S
     // Array<TypeArgValue<S[number]>>
     T extends FunctionTypeLiteral<infer R, infer S> ? { target: (rt: Runtime, self: {}, ...args: Array<TypeValue<TypeArg>>) => IterableIterator<unknown> } :
     T extends CharTypeLiteral ? number :
-    T extends IntTypeLiteral ? number
+    T extends IntTypeLiteral ? number :
+    T extends LongLongTypeLiteral ? number :
+    T extends LongTypeLiteral ? number
     : never
 
 
@@ -78,6 +87,8 @@ export type ClassMemberObject<T extends ClassTypeLiteral<string, Array<Member<Ty
 
 
 export type Runtime = {
+    config: JscppConfig;
+    longTypeLiteral: LongTypeLiteral;
     getMember<T extends ClassTypeLiteral<string, M>, M extends Array<Member<TypeValue<TypeArg>>>, K extends keyof ClassMemberObject<T>>(other: TypeValue<T>, arg1: K): { v: ClassMemberObject<T>[K] }
     makeOperatorFuncName(arg0: string): string;
     makeCharArrayFromString(arg0: string): TypeValue<ArrayTypeLiteral<CharTypeLiteral>>;
@@ -90,7 +101,7 @@ export type Runtime = {
     getCompatibleFunc(scope: string, name: string, args: undefined[]): (rt: Runtime, thisObj, args) => any;
     charTypeLiteral: CharTypeLiteral;
     registerTypedef: (def, name: string) => void;
-
+    primitiveType: <T extends Primitives["name"]>(type: T) => { type: "primitive", name: T }
 
     val: <T extends TypeArg>(returnType: T, value) => TypeValue<T>
     intTypeLiteral: IntTypeLiteral
@@ -149,6 +160,8 @@ export type JscppInclude = Record<string, {
 
 export interface JscppConfig {
     includes: JscppInclude;
+
+    limits?: Record<Primitives["name"], { max: number }>
     stdio;
     debug?: boolean;
 }

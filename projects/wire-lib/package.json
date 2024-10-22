@@ -8,8 +8,8 @@
     "url": "https://github.com/jonnytest1/wiring"
   },
   "peerDependencies": {
-    "@angular/common": "^17.3",
-    "@angular/core": "^17.3"
+    "@angular/common": "^16.2",
+    "@angular/core": "^16.2"
   },
   "dependencies": {
     "jspython-interpreter": "^2.1.15",

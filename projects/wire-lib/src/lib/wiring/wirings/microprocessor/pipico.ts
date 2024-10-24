@@ -12,7 +12,7 @@ import { MicroProcessorBase } from './microprocessor-base';
 export type PinMode = "OUT" | "IN"
 export class PiPico extends MicroProcessorBase {
 
-
+  static override typeName = "PiPico"
 
   controlRef = v4()
   set script(newScript: string) {
@@ -73,7 +73,7 @@ export class PiPico extends MicroProcessorBase {
 
     this.registerTimestamp = options.registrationTimestamp;
 
-    const subNodes: Array<REgistrationNode> = [{ name: this.constructor.name }]
+    const subNodes: Array<REgistrationNode> = [{ name: PiPico.typeName }]
     this.topLevelNodes = options.nodes;
     this.topLevelNodes.push(subNodes)
 
@@ -106,7 +106,7 @@ export class PiPico extends MicroProcessorBase {
     }
     if (this.jsonStringifyTs === getJsonStringifyTime()) {
       return {
-        type: this.constructor.name,
+        type: PiPico.typeName,
         ref: this.instanceUuid,
         pinConnection: this.getId(context.parents.at(-1).outC)
       }
@@ -137,7 +137,7 @@ export class PiPico extends MicroProcessorBase {
       })
 
     return {
-      type: this.constructor.name,
+      type: PiPico.typeName,
       uuid: this.instanceUuid,
       code: this.script,
       ui: this.uiNode,

@@ -12,21 +12,16 @@ import { UINode } from '../ui-node';
   styleUrls: ['./battery-ui.component.less']
 })
 export class BatteryUiComponent extends UINode<Battery> {
+  override factory() {
+    return Battery
+  };
 
   constructor(injector: Injector) {
     super(new Battery(5, 0.01), injector);
-
-
   }
 
   public static readonly templateIcon = 'battery_charging_full';
   batteryCollection: Collection;
-
-  static fromJSON(json: any, map: Record<string, FromJson>, context: { inC: Connection; }): Connection {
-
-    throw new Error('not implemented');
-
-  }
 
   getIcon(): string {
     const percent = this.getChargedPercent();

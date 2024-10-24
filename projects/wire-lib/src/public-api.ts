@@ -11,3 +11,8 @@ export * from "./lib/wiring/example-wires/example-picker/example-picker.componen
 export * from "./lib/wiring/example-wires/examples"
 export * from "./lib/wiring/connection-view/connection-view.component"
 export * from "./lib/wiring/tokens"
+
+
+
+export * from "./lib/wiring/wirings/microprocessor/code-processor/c++-lib/jscpp"
+export * from "./lib/wiring/wirings/microprocessor/code-processor/c++-lib/executer"

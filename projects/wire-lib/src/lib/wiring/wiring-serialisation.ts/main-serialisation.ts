@@ -1,5 +1,8 @@
-import type { FromJsonOptions } from '../serialisation';
-import type { Wire } from '../wirings/wire';
+import { NODE_TEMPLATES } from '../node-templates';
+import type { FromJson, FromJsonOptions } from '../serialisation';
+import { ParrallelWire } from '../wirings/parrallel-wire';
+import { ToggleSwitch } from '../wirings/toggle-switch';
+import { Wire } from '../wirings/wire';
 import type { Wiring } from '../wirings/wiring.a';
 import { BatteryFactory } from './battery-factory';
 import { Esp32Serial } from './esp-serialisation';
@@ -33,13 +36,40 @@ const serialisations: Array<new () => SerialisationFactory<Wiring>> = [
 
 const serialisationMap = Object.fromEntries(serialisations.map(s => {
     const instance = new s()
-    return [instance.factory.name, instance];
+    return [instance.factory.typeName, instance];
 }))
 
 
 export function startSerialize<T extends Wiring>(json, optinos: FromJsonOptions) {
+    optinos.uiSerialisationMap = new Map()
 
-    Object.values(serialisationMap).forEach(e => e.init())
+
+    const serializerClasses: Array<FromJson> = [Wire, ToggleSwitch, ParrallelWire];
+    /* for (const val of serializerClasses) {
+        
+         optinos.uiSerialisationMap.set
+ 
+         this.serialisationMap.set(val.name, {
+             nodeFactory: val,
+             uiFactory: null
+         })
+     }*/
+
+
+
+    NODE_TEMPLATES.forEach(t => {
+
+
+        const nodeConstructor = t.prototype.factory() as FromJson<string>
+
+        nodeConstructor.uiConstructor = t;
+
+        optinos.uiSerialisationMap.set(nodeConstructor, t)
+    });
+
+    Object.values(serialisationMap).forEach(e => {
+        return e.init();
+    })
 
     return serialize<T>(json, optinos)
 

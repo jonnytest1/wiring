@@ -17,6 +17,10 @@ import { Collection } from '../../wirings/collection';
   imports: [InOutComponent, CommonModule]
 })
 export class PicoUiComponent extends UINode<PiPico> {
+  override factory() {
+    return PiPico;
+  };
+
 
 
   @ViewChildren("inout")

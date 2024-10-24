@@ -1,5 +1,5 @@
 
-import { ComponentRef, DestroyRef, Directive, inject, Injector, TemplateRef, ViewChild } from '@angular/core';
+import { ComponentRef, DestroyRef, Directive, inject, InjectionToken, Injector, TemplateRef, ViewChild } from '@angular/core';
 
 import type { Vector2 } from '../util/vector';
 import type { Collection } from '../wirings/collection';
@@ -12,6 +12,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { interval, takeUntil, takeWhile, timer } from 'rxjs';
 import type { WireQueryParams } from '../wire-query-params';
 import { TypedEventEmitter } from '../util/typed-event-emitter';
+
+
+export const existingNodeToken = new InjectionToken<Collection>("existing node");
+
 
 @Directive()
 export abstract class UINode<T extends Collection = Collection> extends TypedEventEmitter<{ afterViewInit: void }> {
@@ -26,6 +30,8 @@ export abstract class UINode<T extends Collection = Collection> extends TypedEve
 
   @ViewChild(InOutComponent)
   public inOutComponent?: InOutComponent;
+
+
   snackbarRef: MatSnackBarRef<any>;
 
   activeRoute = inject(ActivatedRoute)
@@ -39,20 +45,14 @@ export abstract class UINode<T extends Collection = Collection> extends TypedEve
 
   constructor(public node: T, inj?) {
     super()
-    node.uiNode = this;
+    this.node.uiNode = this;
 
 
     this.alive = true
     this.destroy.onDestroy(() => {
       this.alive = false
     })
-
-
-
   }
-
-
-
 
   ngAfterViewInit(): "do not override use event emitter" {
 
@@ -131,6 +131,8 @@ export abstract class UINode<T extends Collection = Collection> extends TypedEve
 
 
   abstract getIcon(): string;
+
+  abstract factory(): (new (...args) => T)
 
 
   toJSON() {

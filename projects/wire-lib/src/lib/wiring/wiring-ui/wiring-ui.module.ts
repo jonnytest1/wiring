@@ -16,7 +16,7 @@ import { RouterModule } from '@angular/router';
 @NgModule({
 
   imports: [
-    CommonModule, MatIconModule, MatBottomSheetModule, InOutComponent, RouterModule.forRoot([])
+    CommonModule, MatIconModule, MatBottomSheetModule, InOutComponent, RouterModule.forChild([])
   ],
   declarations: [
     LedUiComponent, TransformatorUiComponent,

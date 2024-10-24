@@ -139,17 +139,9 @@ export class SerialConnected extends ControlCollection implements Wiring {
 
     toJSON(): any {
         return {
-            type: this.constructor.name,
+            type: SerialBlock.typeName,
             nodes: this.nodes,
             connectedTo: this.outC.connectedTo
         }
     }
-    static fromJSON(json: any, map: Record<string, FromJson>, context: FromJsonOptions): Wire {
-        let nodeElements = json.nodes.map(innerJson => {
-            return context.elementMap[innerJson.type].fromJSON(innerJson, map, context)
-        })
-        const serialBlock = new SerialConnected(...nodeElements)
-        context.wire?.connect(serialBlock.inC)
-        return map[json.connectedTo.type].fromJSON(json.connectedTo, map, { ...context, inC: serialBlock.outC })
-    };
 }*/

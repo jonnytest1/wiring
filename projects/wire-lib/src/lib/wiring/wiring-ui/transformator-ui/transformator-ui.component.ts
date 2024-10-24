@@ -12,6 +12,9 @@ import { MockUiNode } from '../mock-ui';
   styleUrls: ['./transformator-ui.component.less']
 })
 export class TransformatorUiComponent extends UINode<Transformator> implements OnInit {
+  override factory() {
+    return Transformator;
+  };
   constructor(injecotr: Injector) {
     super(new Transformator(), injecotr);
     this.initNodes()

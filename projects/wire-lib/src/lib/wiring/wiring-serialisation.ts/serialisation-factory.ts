@@ -1,6 +1,6 @@
 import type { FromJsonOptions } from '../serialisation';
 import type { Wire } from '../wirings/wire';
-import type { Wiring } from '../wirings/wiring.a';
+import type { Indexable, Wiring } from '../wirings/wiring.a';
 
 export type SerialisationReturn<T extends Wiring> = {
     node: T;
@@ -9,8 +9,7 @@ export type SerialisationReturn<T extends Wiring> = {
 
 export abstract class SerialisationFactory<T extends Wiring> {
 
-    abstract factory: new (...args) => T
-
+    abstract factory: (new (...args) => T) & Indexable
 
     init() {
         // nothing

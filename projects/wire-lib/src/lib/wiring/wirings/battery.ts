@@ -1,6 +1,3 @@
-
-import type { FromJsonOptions } from '../serialisation';
-import { JsonSerializer } from '../serialisation';
 import { Collection } from './collection';
 import { Connection } from './connection';
 import type { RegisterOptions, REgistrationNode } from './interfaces/registration';
@@ -8,6 +5,9 @@ import { noResistance } from './resistance-return';
 import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ResistanceReturn, Wiring } from './wiring.a';
 
 export class Battery extends Collection {
+
+
+  static override typeName = "Battery"
 
   constructor(public voltage: number | null, ampereHours: number) {
     super(null, null);
@@ -44,7 +44,7 @@ export class Battery extends Collection {
 
   }
 
-  override  pushCurrent(options: CurrentOption, from: Wiring): CurrentCurrent {
+  override pushCurrent(options: CurrentOption, from: Wiring): CurrentCurrent {
     if (!from) {
       return this.outC.pushCurrent(options, this);
     } else {
@@ -147,7 +147,7 @@ export class Battery extends Collection {
       return "BatteryRef"
     }
     return {
-      type: this.constructor.name,
+      type: Battery.typeName,
       prov: this.outC.connectedTo,
       voltage: this.voltage,
       ui: this.uiNode,

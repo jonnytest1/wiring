@@ -5,9 +5,10 @@ import type { Connection } from './connection';
 import type { RegisterOptions } from './interfaces/registration';
 import { Parrallel } from './parrallel';
 import { ParrallelWire } from './parrallel-wire';
-import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ResistanceReturn, Wiring } from './wiring.a';
+import type { CurrentCurrent, CurrentOption, GetResistanceOptions, Indexable, IndexableStatic, ResistanceReturn, Wiring } from './wiring.a';
 
 export class Wire extends Collection {
+  static override typeName = "Wire"
 
 
   constructor(inConnection?: Connection) {
@@ -25,7 +26,7 @@ export class Wire extends Collection {
   public isViewWire = true;
 
 
-  static connectNodes(...nodes: Array<Collection | Array<Collection> | ParrallelWire>) {
+  static connectNodes(...nodes: Array<Collection | Array<Collection & IndexableStatic> | ParrallelWire>) {
     let lastEl: Collection | ParrallelWire;
     nodes.forEach(node => {
       if (node instanceof Array) {
@@ -83,13 +84,13 @@ export class Wire extends Collection {
 
 
   override register(options: RegisterOptions) {
-    options.nodes.push({ name: this.constructor.name });
+    options.nodes.push({ name: Wire.typeName });
     return this.outC.register({ ...options, from: this });
   }
 
   override toJSON(key?) {
     return {
-      type: this.constructor.name,
+      type: Wire.typeName,
       connectedWire: this.outC.parent,
       ui: this.uiNode
     };

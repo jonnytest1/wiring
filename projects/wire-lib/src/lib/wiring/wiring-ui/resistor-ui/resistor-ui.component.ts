@@ -9,6 +9,9 @@ import { UINode } from '../ui-node';
   styleUrls: ['./resistor-ui.component.less']
 })
 export class ResistorUiComponent extends UINode<Resistor> implements OnInit {
+  override factory() {
+    return Resistor;
+  };
 
   public static templateIcon = "insights"
 

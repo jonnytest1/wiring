@@ -4,6 +4,7 @@ import type { Wire } from '../wirings/wire';
 import { SerialisationFactory } from './serialisation-factory';
 
 export class ResistorSerial extends SerialisationFactory<Resistor> {
+
     override factory = Resistor;
     override fromJSON(json: any, context: FromJsonOptions): { node: Resistor; wire: Wire; } {
         const self = new Resistor(json.resistance);

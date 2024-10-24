@@ -5,6 +5,7 @@ import type { Wire } from '../wirings/wire';
 import { SerialisationFactory } from './serialisation-factory';
 
 export class TransformatorSer extends SerialisationFactory<Transformator> {
+
     override factory = Transformator;
 
     override fromJSON(json: any, context: FromJsonOptions): { node: Transformator; wire: Wire; } {

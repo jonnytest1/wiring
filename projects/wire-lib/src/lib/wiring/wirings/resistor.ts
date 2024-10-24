@@ -5,13 +5,13 @@ import type { UINode } from '../wiring-ui/ui-node';
 import { Collection } from './collection';
 import { Connection } from './connection';
 import type { Wire } from './wire';
-import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ResistanceReturn, Wiring } from './wiring.a';
+import type { CurrentCurrent, CurrentOption, GetResistanceOptions, Indexable, IndexableStatic, ResistanceReturn, Wiring } from './wiring.a';
 import { v4 } from "uuid"
 import type { RegisterOptions, REgistrationNode } from './interfaces/registration';
 
-export class Resistor extends Collection implements Wiring {
+export class Resistor extends Collection implements Wiring, IndexableStatic {
 
-
+  static override typeName = "Resistor"
   override uiNode?: UINode;
 
   voltageDrop: number
@@ -23,6 +23,7 @@ export class Resistor extends Collection implements Wiring {
     this.inC = new Connection(this, "res_in")
     this.outC = new Connection(this, "res_out")
   }
+  override['constructor']: Indexable;
   override getTotalResistance(from, options: GetResistanceOptions): ResistanceReturn {
     const afterResistance = this.outC.getTotalResistance(this, options);
     return { ...afterResistance, resistance: afterResistance.resistance + this.resistance }
@@ -44,7 +45,7 @@ export class Resistor extends Collection implements Wiring {
     }, this);
   }
   override  register(options: RegisterOptions) {
-    const repr: REgistrationNode = { name: this.constructor.name };
+    const repr: REgistrationNode = { name: Resistor.typeName };
     if (options.withSerialise) {
       repr.details = {
         resistance: this.resistance,

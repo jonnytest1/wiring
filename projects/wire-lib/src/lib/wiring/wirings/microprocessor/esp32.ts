@@ -9,14 +9,13 @@ export type Esp32Provides = CppExecuterParams
 
 
 export class Esp32 extends MicroProcessorBase {
-
     override operationResistance = 2;
 
     override executer: CppExecuter
     ledMatrix: string[][];
 
 
-    constructor(espOptions?: Esp32Provides) {
+    constructor() {
         super({
             pinCount: 20,
             tagMap: {
@@ -24,9 +23,12 @@ export class Esp32 extends MicroProcessorBase {
                 ground: [9]
             }
         })
-        this.executer = new CppExecuter(this, espOptions);
+        this.executer = new CppExecuter(this);
     }
 
+    setEspProvides(esp32Provides: CppExecuterParams) {
+        this.executer.setEspProvides(esp32Provides)
+    }
 
     setLedMatrix(ledMAtrix: Array<Array<string>>) {
         this.ledMatrix = ledMAtrix

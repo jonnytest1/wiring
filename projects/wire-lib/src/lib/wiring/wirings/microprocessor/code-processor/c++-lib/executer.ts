@@ -2,13 +2,19 @@
 import { Executer } from '../executer';
 import "./lib/jscpp"
 import type { Esp32 } from '../../esp32';
-import { consumeFunction, instantiate, newClassBound, stringTypeLiteral, type ArrayTypeLiteral, type ClassRef, type ClassTypeLiteral, type FunctionTypeLiteral, type JscppConfig, type JscppInclude, type Member, type Runtime, type StringTypeLiteral, type TypeArg, type TypeValue } from './jscpp';
+import {
+    consumeFunction, instantiate, newClassBound, stringTypeLiteral, type ArrayTypeLiteral,
+    type IncludeObj,
+    type JscppConfig, type JscppInclude, type Member, type Runtime,
+    type StringTypeLiteral, type TypeArg, type TypeValue
+} from './jscpp';
+import { fastLed } from './libs/fastled';
 
 
 
 
 export type CppExecuterParams = {
-    includes?: JscppInclude,
+    includes?: Record<string, IncludeObj | ((evn: CppExecuter) => IncludeObj)>,
     /**
      * jscpp doesnt currently support all features , use this to map code into a form that works
      */
@@ -18,6 +24,7 @@ export type CppExecuterParams = {
 
 
 export class CppExecuter extends Executer {
+
     intervals: Array<NodeJS.Timeout> = [];
 
     code: string
@@ -26,13 +33,19 @@ export class CppExecuter extends Executer {
     logs: Array<{ color: string, line: string }> = []
 
     startime = -1
+    params: CppExecuterParams = {}
 
-    constructor(private environment: Esp32, private params: CppExecuterParams = {}) {
+    constructor(private environment: Esp32) {
         super()
 
         this.prepare()
     }
 
+
+    setEspProvides(esp32Provides: CppExecuterParams) {
+        this.params = esp32Provides ?? {}
+        this.prepare()
+    }
     wrappedCode() {
 
         let code = this.code;
@@ -53,14 +66,22 @@ int main() {
     prepare() {
         let output = "";
 
+        const mappedLibs = Object.fromEntries(Object.entries(this.params.includes ?? {}).map(([key, val]) => {
+            if (typeof val === "function") {
+                val = val(this)
+            }
+            return [key, val];
+        }))
+
+
         this.libs = {
             includes: {
-                ...this.params.includes ?? {},
-                //  ...pubSubLib(),
+                ...fastLed(this.environment),
                 "Arduino.h": {
                     load: (rt) => {
                         rt.regFunc((rt, _this, setupFnc) => {
-                            debugger;
+                            console.log("delay")
+                            //debugger;
                             return rt.val(rt.voidTypeLiteral, undefined);
                         }, "global", "delay", [rt.intTypeLiteral], rt.voidTypeLiteral);
 
@@ -85,8 +106,8 @@ int main() {
                         rt.regFunc((rt, _this) => {
 
                             let millis = Date.now() - this.startime
-                            while (millis > rt.config.limits.long.max) {
-                                millis -= rt.config.limits.long.max
+                            while (millis > rt.config.limits!.long.max) {
+                                millis -= rt.config.limits!.long.max
                             }
 
                             return rt.val(rt.longTypeLiteral, millis);
@@ -94,82 +115,19 @@ int main() {
                         //TODO
                     }
                 },
-                "FastLED.h": {
-                    load: (rt) => {
-                        const ledClass = newClassBound<[StringTypeLiteral]>(rt)("CRGB", [
-                            {
-                                name: "color" as const,
-                                initialize(rt, _this) {
-                                    const firstARg = _this.args?.[0];
-                                    if (firstARg) {
-                                        return _this.args?.[0];
-                                    }
-                                    return rt.val(rt.arrayPointerType(rt.charTypeLiteral), null);
-                                },
-                            }
-                        ]);
-                        rt.regFunc((rt, self, other) => {
-                            const color = rt.getMember(other.v, "color");
-                            self.v.members.color.v = color;
 
-                        }, ledClass, rt.makeOperatorFuncName("="), [ledClass], rt.voidTypeLiteral);
-
-                        const staticT = newClassBound<[]>(rt)("CRGBStatic", [{
-                            name: "Red" as const,
-                            initialize<T>(rt: Runtime, _this) {
-                                return rt.val(ledClass, instantiate(rt, ledClass, [rt.makeCharArrayFromString("red")]));
-                            },
-                        }, {
-                            name: "Black" as const,
-                            initialize(rt, _this) {
-                                return rt.val(ledClass, instantiate(rt, ledClass, [rt.makeCharArrayFromString("black")]));
-                            },
-                        }]);
-                        let ledList: TypeValue<ArrayTypeLiteral<typeof ledClass>>;
-                        rt.regFunc((rt, self, leds, ct) => {
-                            ledList = leds;
-                        }, staticT, "addLeds", [rt.arrayPointerType(ledClass), rt.intTypeLiteral], rt.voidTypeLiteral);
-
-                        rt.regFunc(() => {
-                            const data = ledList.v.target;
-
-                            const leds: string[][] = [];
-                            let index = 0;
-                            for (let rowI = 0; rowI < 8; rowI++) {
-                                const row = [];
-                                leds.push(row);
-
-                                for (let colI = 0; colI < 8; colI++) {
-                                    const element = data[index];
-                                    const colorMember = rt.getMember(element, "color");
-
-                                    if (colorMember.v == null) {
-                                        row.push("transparent");
-                                    } else {
-                                        const colorString = rt.getStringFromCharArray(colorMember.v);
-                                        row.push(colorString);
-                                    }
-
-                                    index++;
-                                }
-                            }
-
-
-                            this.environment.setLedMatrix(leds);
-                        }, staticT, "show", [], rt.voidTypeLiteral);
-
-                        const instance = instantiate(rt, staticT, []);
-
-                        rt.defVar("FastLED", staticT, instance);
-                    }
-                },
                 "mainloop": {
                     load: (rt) => {
                         rt.regFunc((rt, _this, setupFnc, loopFnc) => {
                             consumeFunction(rt, setupFnc);
 
                             this.intervals.push(setInterval(() => {
-                                consumeFunction(rt, loopFnc);
+                                try {
+                                    consumeFunction(rt, loopFnc);
+                                } catch (e) {
+                                    console.error(e)
+                                    this.logs.push({ color: "red", line: e.stack })
+                                }
                             }, 1000));
 
 
@@ -182,7 +140,8 @@ int main() {
                             return rt.val(rt.voidTypeLiteral, undefined);
                         }, "global", "debug", [rt.arrayPointerType(rt.charTypeLiteral)], rt.voidTypeLiteral);
                     }
-                }
+                },
+                ...mappedLibs ?? {},
             },
             stdio: {
                 write: function (s) {
@@ -216,7 +175,7 @@ int main() {
             this.logs.length = 0
             const returnV = window.JSCPP.run(this.wrappedCode(), "", this.libs)
         } catch (e) {
-            console.log(e)
+            console.error(e)
             this.logs.push({ color: "red", line: e.stack })
         }
     }

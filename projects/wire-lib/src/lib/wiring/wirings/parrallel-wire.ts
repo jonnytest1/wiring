@@ -8,6 +8,7 @@ import type { RegisterOptions } from './interfaces/registration';
 import { noConnection } from './resistance-return';
 
 export class ParrallelWire extends Wiring {
+  static typeName = "ParrallelWire"
 
 
   outC: Array<Connection> = []
@@ -181,7 +182,7 @@ export class ParrallelWire extends Wiring {
   }
 
   register(options: RegisterOptions) {
-    options.nodes.push({ name: this.constructor.name })
+    options.nodes.push({ name: ParrallelWire.typeName })
 
     const nodes = this.outC.map(c => {
       const parrallelNodes = []
@@ -227,7 +228,7 @@ export class ParrallelWire extends Wiring {
 
   toJSON() {
     return {
-      type: this.constructor.name,
+      type: ParrallelWire.typeName,
       uuid: this.instance,
       //instanceof Battery ? "BatteryRef" : c.parent
       outC: this.outC.map(c => c.parent)

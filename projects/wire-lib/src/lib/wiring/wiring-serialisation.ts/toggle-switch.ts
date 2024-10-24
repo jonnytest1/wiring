@@ -4,6 +4,7 @@ import type { Wire } from '../wirings/wire'
 import { SerialisationFactory } from './serialisation-factory'
 
 export class ToggleSwitchSerialisation extends SerialisationFactory<ToggleSwitch> {
+
     override factory = ToggleSwitch;
     override fromJSON(json: any, context: FromJsonOptions): { node: ToggleSwitch; wire: Wire } {
         const self = new ToggleSwitch();

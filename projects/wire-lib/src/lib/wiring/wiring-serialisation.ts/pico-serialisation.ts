@@ -4,6 +4,7 @@ import type { Wire } from '../wirings/wire';
 import { SerialisationFactory } from './serialisation-factory';
 
 export class PicoSerialisation extends SerialisationFactory<PiPico> {
+
     override factory = PiPico;
     jsonRefPinId: number;
 

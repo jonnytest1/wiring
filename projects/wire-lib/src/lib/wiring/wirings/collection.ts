@@ -7,7 +7,7 @@ import { Wiring } from './wiring.a';
 
 export class Collection extends Wiring {
 
-
+  static typeName = "Collection"
   constructor(public inC: Connection | null, public outC: Connection | null) {
     super();
     this['id'] = Math.random();
@@ -19,7 +19,7 @@ export class Collection extends Wiring {
       options.nodes.push({ name: "Collection" });
       return this.outC?.register({ ...options, from: this });
     }
-    options.nodes.push({ name: this.constructor.name });
+    options.nodes.push({ name: Collection.typeName });
     return this.inC?.register({ ...options, from: this });
   }
 
@@ -29,7 +29,7 @@ export class Collection extends Wiring {
 
   toJSON(key?, c?): any {
     const jsonObj = {
-      type: this.constructor.name
+      type: Collection.typeName
     };
     this.applytoJson(jsonObj);
     return jsonObj;

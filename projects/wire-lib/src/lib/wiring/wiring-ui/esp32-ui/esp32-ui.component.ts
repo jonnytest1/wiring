@@ -16,8 +16,11 @@ import { esp32LibraryToken } from '../../tokens';
   imports: [InOutComponent, CommonModule]
 })
 export class Esp32UiComponent extends UINode<Esp32> {
+  override factory() {
+    return Esp32;
+  };
 
-  public static templateIcon = "asset:assets/icons/esp8x8.png"
+  public static templateIcon = "asset:assets/icons/esp8x8.jpg"
   topUiComponets: Collection[];
   bottomUiComponents: Collection[];
 
@@ -29,18 +32,20 @@ export class Esp32UiComponent extends UINode<Esp32> {
   }
 
 
+  esp32Provides = inject(esp32LibraryToken, {
+    optional: true
+  }) || undefined
 
 
   constructor() {
-    const esp32Provides = inject(esp32LibraryToken, {
-      optional: true
-    })
-    super(new Esp32(esp32Provides))
+    super(new Esp32())
+
 
 
   }
 
   override initNodes(): void {
+    this.node.setEspProvides(this.esp32Provides)
     this.topUiComponets = this.node.topRow.map(pin => new Collection(pin, null))
     this.bottomUiComponents = this.node.bottomRow.map(pin => new Collection(pin, null))
   }

@@ -8,6 +8,7 @@ import type { ParrallelWire } from './wirings/parrallel-wire';
 import type { Wire } from './wirings/wire';
 import type { Wiring } from './wirings/wiring.a';
 import { iterateJsonStringify } from '../utils/json-stringify-iterator';
+import { UINode } from './wiring-ui/ui-node';
 
 
 export interface ControllerRef {
@@ -25,14 +26,9 @@ export interface FromJsonOptions {
   controllerRefs: Record<string, ControllerRef>
 
   constorlRefsInitialized: Promise<void>
-  elementMap: {
-    Battery: FromJson<"Battery">,
-    [key: string]: FromJson<typeof key>
-  }
-
   templateName?: string
 
-
+  uiSerialisationMap?: Map<FromJson<"">, new (...args) => UINode>;
   loadElement: (json, context: FromJsonOptions) => { node: unknown, wire: Wire }
 }
 
@@ -85,8 +81,7 @@ export class JsonSerializer {
 
   static async createUiRepresation(node: Wiring & Collection, json: UIJson, optinos: FromJsonOptions) {
     await optinos.constorlRefsInitialized;
-    const conststructorName = node.constructor.name;
-    const uiConstructor = optinos.elementMap[conststructorName].uiConstructor
+    const uiConstructor = optinos.uiSerialisationMap.get(node.constructor)
     if (uiConstructor && json.ui?.x && json.ui.y && optinos.viewRef) {
       const position = new Vector2(json.ui)
       const element = optinos.viewRef.createComponent(uiConstructor, {

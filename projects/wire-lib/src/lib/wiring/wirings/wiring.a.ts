@@ -38,6 +38,14 @@ export interface ResistanceReturn {
   steps: Array<any>
 }
 
+export interface Indexable {
+  typeName: string
+}
+
+export type IndexableStatic = { constructor: Indexable }
+
+
+
 export abstract class Wiring {
   name?: string;
   uiNode?: UINode;

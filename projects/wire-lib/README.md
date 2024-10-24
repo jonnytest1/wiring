@@ -30,3 +30,6 @@ include this in assets of your angular json ,
 @include mat.core();
 
 ```
+
+provide ,
+RouterModule.forRoot([]) somewhere for the wiring component to be able to set query params

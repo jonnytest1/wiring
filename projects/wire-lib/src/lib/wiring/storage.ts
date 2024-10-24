@@ -16,30 +16,14 @@ export const templateService = new InjectionToken<() => Promise<Array<{ name: st
 
 @Injectable()
 export class LocalStorageSerialization {
-
-  serialisationMap: Partial<FromJsonOptions["elementMap"]> = {};
-
-
   private getTemplates = inject(templateService)
 
   constructor(private bottomSheet: MatBottomSheet) {
-    this.initializeSerializerClasses();
+
   }
 
 
-  private initializeSerializerClasses() {
-    const serializerClasses: Array<FromJson> = [Wire, ToggleSwitch, ParrallelWire];
-    for (const val of serializerClasses) {
-      this.serialisationMap[val.name] = val;
-    }
 
-    NODE_TEMPLATES.forEach(t => {
-      const tempT = new t(null);
-      const nodeConstructor = tempT.node.constructor as unknown as FromJson;
-      nodeConstructor.uiConstructor = t;
-      this.serialisationMap[nodeConstructor.name] = nodeConstructor;
-    });
-  }
 
 
   storeToLocal(batteries: Array<Battery>,
@@ -93,7 +77,6 @@ export class LocalStorageSerialization {
 
     const batteries = parsed.map(obj => startSerialize<Battery>(obj, {
       ...options,
-      elementMap: this.serialisationMap as FromJsonOptions["elementMap"],
       controlRefs: controlRegfs,
       constorlRefsInitialized: controlRefsinitialized.prRef,
       controllerRefs: controllerRefs,

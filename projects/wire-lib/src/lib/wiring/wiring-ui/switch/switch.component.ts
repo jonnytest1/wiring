@@ -8,6 +8,9 @@ import { UINode } from '../ui-node';
   styleUrls: ['./switch.component.less']
 })
 export class SwitchComponent extends UINode<Switch> implements OnInit {
+  override factory() {
+    return Switch;
+  };
   public static templateIcon = "switch_left"
 
 

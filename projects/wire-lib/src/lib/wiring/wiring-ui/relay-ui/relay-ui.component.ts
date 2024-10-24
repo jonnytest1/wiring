@@ -3,13 +3,17 @@ import { Component, Injector, TemplateRef, ViewChild } from '@angular/core';
 import { Vector2 } from '../../util/vector';
 import { Collection } from '../../wirings/collection';
 import { Relay } from '../../wirings/relay';
-import type { Switch } from '../../wirings/switch';
+import { Switch } from '../../wirings/switch';
 import type { Wire } from '../../wirings/wire';
 import { InOutComponent } from '../in-out/in-out.component';
 import { UINode } from '../ui-node';
 
 
 class NestedSwitch extends UINode<Switch> {
+  override factory() {
+    return Switch;
+  };
+
   getIcon(): string {
     throw new Error('Method not implemented.');
   }
@@ -23,6 +27,10 @@ class NestedSwitch extends UINode<Switch> {
   styleUrls: ['./relay-ui.component.less']
 })
 export class RelayUiComponent extends UINode<Relay> implements OnInit {
+  override factory() {
+    return Relay;
+  };
+
   public static templateIcon = 'asset:assets/icons/relay.png'
 
 

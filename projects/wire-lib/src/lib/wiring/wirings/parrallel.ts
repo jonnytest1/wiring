@@ -5,10 +5,10 @@ import { Connection } from './connection';
 import { ControlCollection } from './control-collection.a';
 import { noResistance } from './resistance-return';
 import { Wire } from './wire';
-import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ResistanceReturn, Wiring } from './wiring.a';
+import type { CurrentCurrent, CurrentOption, GetResistanceOptions, Indexable, ResistanceReturn, Wiring } from './wiring.a';
 
 export class Parrallel extends ControlCollection implements Wiring {
-  constructor(...containers: Array<Collection & Wiring>) {
+  constructor(...containers: Array<Collection & Wiring & { constructor: Indexable }>) {
     super(null, null);
     this.inC = new Connection(this, 'par_in');
     this.outC = new Connection(this, 'par_out');
@@ -31,7 +31,7 @@ export class Parrallel extends ControlCollection implements Wiring {
   lanes: Array<Collection>;
 
 
-  containers: Array<Collection & Wiring>;
+  containers: Array<Collection & Wiring & { constructor: Indexable }>;
 
   voltageDrop?: number;
   wireProv: Wire;
@@ -97,7 +97,7 @@ export class Parrallel extends ControlCollection implements Wiring {
   getStructure() {
     return this.containers
       .map(container => container instanceof ControlCollection ? container.getStructure() : {
-        name: container.constructor.name
+        name: container.constructor.typeName
       });
   }
 }

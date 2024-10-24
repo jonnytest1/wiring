@@ -1,9 +1,12 @@
+import { inject } from '@angular/core';
 import { JsonSerializer, type FromJsonOptions } from '../serialisation';
 import { Esp32 } from '../wirings/microprocessor/esp32';
 import type { Wire } from '../wirings/wire';
 import { SerialisationFactory, type SerialisationReturn } from './serialisation-factory';
+import { esp32LibraryToken } from '../tokens';
 
 export class Esp32Serial extends SerialisationFactory<Esp32> {
+
     override factory = Esp32;
     jsonRefPinId: number;
     override fromJSON(json: any, context: FromJsonOptions): { node: Esp32; wire: Wire; } {
@@ -15,6 +18,7 @@ export class Esp32Serial extends SerialisationFactory<Esp32> {
                 node: null
             }
         }
+
         const esp = new Esp32()
         // piPico.instanceUuid = json.uuid
         if (json.code) {

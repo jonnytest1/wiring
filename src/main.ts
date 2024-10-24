@@ -3,6 +3,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { BrowserModule } from '@angular/platform-browser';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterModule } from '@angular/router';
 import { WiringModule, WiringComponent, templateService, examples } from "dev-wire-lib"
 
 @NgModule({
@@ -10,7 +11,8 @@ import { WiringModule, WiringComponent, templateService, examples } from "dev-wi
     BrowserModule,
     BrowserAnimationsModule,
     MatIconModule,
-    WiringModule
+    WiringModule,
+    RouterModule.forRoot([])
   ], exports: [
     WiringModule
   ],

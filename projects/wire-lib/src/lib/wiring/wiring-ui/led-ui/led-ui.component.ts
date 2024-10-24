@@ -9,6 +9,9 @@ import { UINode } from '../ui-node';
   styleUrls: ['./led-ui.component.less']
 })
 export class LedUiComponent extends UINode<LED> implements OnInit {
+  override factory() {
+    return LED;
+  };
 
   constructor(injector: Injector) {
     super(new LED(), injector);

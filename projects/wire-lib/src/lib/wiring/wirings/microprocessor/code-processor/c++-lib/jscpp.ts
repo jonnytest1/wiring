@@ -20,6 +20,7 @@ export type VoidTypeLiteral = {
 
 export type IntTypeLiteral = { type: 'primitive', name: 'int' }
 export type LongTypeLiteral = { type: 'primitive', name: 'long' }
+export type BoolTypeLiteral = { type: 'primitive', name: 'bool' }
 export type LongLongTypeLiteral = { type: 'primitive', name: 'long long' }
 
 
@@ -36,7 +37,7 @@ export type ClassRef<T extends string> = {
     type: "class"
 }
 
-export type Primitives = CharTypeLiteral | VoidTypeLiteral | IntTypeLiteral | LongTypeLiteral | LongLongTypeLiteral
+export type Primitives = CharTypeLiteral | VoidTypeLiteral | IntTypeLiteral | LongTypeLiteral | LongLongTypeLiteral | BoolTypeLiteral
 
 export type TypeArg = Primitives | ClassTypeLiteral<string, []> | ArrayTypeLiteral<TypeArg>
     | ClassRef<string> | FunctionTypeLiteral<TypeArg, Array<TypeArg>>
@@ -89,6 +90,7 @@ export type ClassMemberObject<T extends ClassTypeLiteral<string, Array<Member<Ty
 export type Runtime = {
     config: JscppConfig;
     longTypeLiteral: LongTypeLiteral;
+    boolTypeLiteral: BoolTypeLiteral
     getMember<T extends ClassTypeLiteral<string, M>, M extends Array<Member<TypeValue<TypeArg>>>, K extends keyof ClassMemberObject<T>>(other: TypeValue<T>, arg1: K): { v: ClassMemberObject<T>[K] }
     makeOperatorFuncName(arg0: string): string;
     makeCharArrayFromString(arg0: string): TypeValue<ArrayTypeLiteral<CharTypeLiteral>>;
@@ -113,28 +115,32 @@ export type Runtime = {
         scope: "global" | TypeArg,
         name: string,
         args: [T1, T2, T3],
-        returnType: TypeArg
+        returnType: TypeArg,
+        optArgs?: Array<TypeArg>
     ): void;
     regFunc<T1 extends TypeArg, T2 extends TypeArg>(
         fnc: (runtime: Runtime, self: any, t1: TypeValue<T1>, t2: TypeValue<T2>) => void,
         scope: "global" | TypeArg,
         name: string,
         args: [T1, T2],
-        returnType: TypeArg
+        returnType: TypeArg,
+        optArgs?: Array<TypeArg>
     ): void;
     regFunc<T1 extends TypeArg>(
         fnc: (runtime: Runtime, self: any, t1: TypeValue<T1>) => void,
         scope: "global" | TypeArg,
         name: string,
         args: [T1],
-        returnType: TypeArg
+        returnType: TypeArg,
+        optArgs?: Array<TypeArg>
     ): void;
     regFunc(
         fnc: (runtime: Runtime, self: any) => void,
         scope: "global" | TypeArg,
         name: string,
         args: [],
-        returnType: TypeArg
+        returnType: TypeArg,
+        optArgs?: Array<TypeArg>
     ): void;
 };
 
@@ -154,9 +160,11 @@ export function instantiate<C extends ClassTypeLiteral<string, []>>(rt: Runtime,
 export function newClassBound<Init extends Array<TypeArg>>(rt: Runtime) {
     return rt.newClass.bind(rt) as <N extends string, T extends ReadonlyArray<Member<TypeValue<TypeArg>, Init>>>(name: N, members: T, preinit?: (rt: Runtime, args: Array<TypeValue<TypeArg>>) => void) => ClassTypeLiteral<N, T, Init>;
 }
-export type JscppInclude = Record<string, {
+export interface IncludeObj {
     load: (runtime: Runtime) => void;
-}>;
+}
+
+export type JscppInclude = Record<string, IncludeObj>;
 
 export interface JscppConfig {
     includes: JscppInclude;

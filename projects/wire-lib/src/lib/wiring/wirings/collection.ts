@@ -1,7 +1,7 @@
 
 import type { Connection } from './connection';
 import type { RegisterOptions } from './interfaces/registration';
-import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ResistanceReturn } from './wiring.a';
+import type { CurrentCurrent, CurrentOption, GetResistanceOptions, Indexable, IndexableStatic, ResistanceReturn } from './wiring.a';
 import { Wiring } from './wiring.a';
 
 
@@ -29,7 +29,7 @@ export class Collection extends Wiring {
 
   toJSON(key?, c?): any {
     const jsonObj = {
-      type: Collection.typeName
+      type: (this as unknown as IndexableStatic).constructor.typeName
     };
     this.applytoJson(jsonObj);
     return jsonObj;

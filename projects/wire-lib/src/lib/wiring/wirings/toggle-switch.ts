@@ -5,6 +5,7 @@ import type { Wire } from './wire';
 import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ResistanceReturn, Wiring } from './wiring.a';
 
 export class ToggleSwitch extends Switch {
+  static override typeName = "ToggleSwitch"
 
 
 

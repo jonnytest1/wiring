@@ -9,6 +9,7 @@ export type Esp32Provides = CppExecuterParams
 
 
 export class Esp32 extends MicroProcessorBase {
+    static override typeName = "Esp32"
     override operationResistance = 2;
 
     override executer: CppExecuter

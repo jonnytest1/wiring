@@ -138,7 +138,7 @@ export abstract class UINode<T extends Collection = Collection> extends TypedEve
   toJSON() {
     return {
       ...this.getPosition(),
-      rotation: this.rotation
+      rotation: this.rotation ?? 0
     }
   }
 

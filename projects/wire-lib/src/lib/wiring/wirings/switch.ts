@@ -8,6 +8,8 @@ import type { Wire } from './wire'
 import type { GetResistanceOptions, ResistanceReturn } from './wiring.a'
 export class Switch extends Resistor {
 
+  static override typeName = "Switch"
+
   enabled = false
   public controlRef: string
 

@@ -38,8 +38,8 @@ export interface ResistanceReturn {
   steps: Array<any>
 }
 
-export interface Indexable {
-  typeName: string
+export interface Indexable<T extends string = string> {
+  typeName: T
 }
 
 export type IndexableStatic = { constructor: Indexable }

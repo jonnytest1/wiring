@@ -15,12 +15,12 @@ import { SwitchFactory } from './switch';
 import { ToggleSwitchSerialisation } from './toggle-switch';
 import { TransformatorSer } from './transformator';
 import { WireSerialsiation } from './wire-serialsiation';
+import { isDevMode } from '@angular/core';
 
 
 
 
-
-const serialisations: Array<new () => SerialisationFactory<Wiring>> = [
+const serialisations = [
     BatteryFactory,
     LedSerializer,
     PicoSerialisation,
@@ -31,11 +31,17 @@ const serialisations: Array<new () => SerialisationFactory<Wiring>> = [
     TransformatorSer,
     WireSerialsiation,
     Esp32Serial
-]
+] satisfies Array<new () => SerialisationFactory<Wiring>>
 
 
 const serialisationMap = Object.fromEntries(serialisations.map(s => {
     const instance = new s()
+
+    if (isDevMode() && instance.factory.typeName !== instance.factory.name) {
+        debugger
+        throw new Error("mismatched factory name")
+    }
+
     return [instance.factory.typeName, instance];
 }))
 
@@ -94,5 +100,5 @@ export function serialize<T extends Wiring>(json: JsonSerialisationtype, optinos
         obj.node.nodeUuid = json.uuid
     }
 
-    return obj as SerialisationReturn<T>
+    return obj as SerialisationReturn<never> as SerialisationReturn<T>
 }

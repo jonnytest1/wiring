@@ -1,13 +1,12 @@
 import type { ControllerRef, FromJsonOptions } from '../serialisation';
-import { JsonSerializer } from '../serialisation';
 import { Resistor } from './resistor';
 import { v4 } from "uuid"
 import type { CurrentOption } from './wiring.a';
 import { ToggleSwitch } from './toggle-switch';
-import type { Wire } from './wire';
+
+
 export class Relay extends Resistor implements ControllerRef {
-
-
+  static override typeName = "Relay"
   controlRef = v4()
 
   switch1 = new ToggleSwitch()

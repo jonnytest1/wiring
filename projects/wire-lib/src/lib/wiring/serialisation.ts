@@ -67,9 +67,9 @@ export function wiringJsonStringify(node: Battery) {
 }
 
 
-function iteratationWiringStringify(node: Wiring) {
-  const jsonRepresentation = iterateJsonStringify(node, {}, iteratationWiringStringify);
-  if (node.nodeUuid) {
+function iteratationWiringStringify(node: Wiring, c = {}) {
+  const jsonRepresentation = iterateJsonStringify(node, c, iteratationWiringStringify);
+  if (node?.nodeUuid && typeof jsonRepresentation === "object") {
     jsonRepresentation["nodeUuid"] = node.nodeUuid
   }
 

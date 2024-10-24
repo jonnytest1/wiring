@@ -7,6 +7,8 @@ import type { Wire } from './wire';
 import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ResistanceReturn, Wiring } from './wiring.a';
 
 export class LED extends Resistor {
+
+  static override typeName = "LED"
   brightness: number = 0;
 
   blown = false

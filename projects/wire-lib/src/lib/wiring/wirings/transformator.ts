@@ -6,6 +6,7 @@ import type { Wire } from './wire';
 import type { CurrentOption, Wiring, CurrentCurrent } from './wiring.a';
 
 export class Transformator extends Resistor {
+  static override typeName = "Transformator"
   constructor() {
     super(5);
     this.providingBattery.enabled = true;

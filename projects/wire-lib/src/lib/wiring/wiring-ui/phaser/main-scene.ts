@@ -10,7 +10,6 @@ import {
     TextureLoader
 } from 'three';
 import * as THREE from "three"
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry"
 import type { NodeEl, NodeTemplate } from '../../wiring.component';
 import { nodesSubject } from './scene-data';
@@ -24,15 +23,24 @@ import { ImageAsset } from './asset/image';
 import { TransformedAsset } from './asset/transformed-asset';
 import { TransformedText } from './asset/text';
 import { LineMesh } from './asset/line-mesh';
+import { CustomControls } from './controls';
 
 export class GameScene extends Scene {
     ball: Mesh<SphereGeometry, MeshStandardMaterial, Object3DEventMap>;
     threeScene: ThreeScene;
+    wires: Set<Wire>;
+    nodeComponent: Map<Wiring, Mesh<THREE.BufferGeometry<THREE.NormalBufferAttributes>, THREE.Material | THREE.Material[], Object3DEventMap> | (TransformedAsset & Mesh<THREE.BufferGeometry<THREE.NormalBufferAttributes>, THREE.Material | THREE.Material[], Object3DEventMap>)>;
+
+    wireElements: Array<LineMesh> = []
+
+
     constructor(private nodes: NodeEl[]) {
         super({
             key: 'GameScene'
         });
     }
+
+
 
 
     create() {
@@ -71,17 +79,16 @@ export class GameScene extends Scene {
         nodesSubject.pipe(takeWhile(() => !this.scene.isActive()))
             .subscribe(async nodes => {
 
-                const wires = new Set<Wire>();
-                const nodeComponent = new Map<Wiring, Mesh | (TransformedAsset & Mesh)>()
+                this.wires = new Set<Wire>();
+                this.nodeComponent = new Map<Wiring, Mesh | (TransformedAsset & Mesh)>()
                 const asyncList = []
                 for (let node of nodes) {
                     const icon = (node.node.uiNode.constructor as NodeTemplate).templateIcon
 
                     if (icon.startsWith("asset:")) {
                         const msh = new ImageAsset(node)
-
                         this.threeScene.add(msh)
-                        nodeComponent.set(node.node, msh)
+                        this.nodeComponent.set(node.node, msh)
 
                         asyncList.push(msh.ready.prRef)
 
@@ -90,7 +97,7 @@ export class GameScene extends Scene {
                         textMesh1.position.set(node.position.x / 100, 20, node.position.y / 100)
                         //textMesh1.rotateZ(Math.PI)
                         this.threeScene.add(textMesh1)
-                        nodeComponent.set(node.node, textMesh1)
+                        this.nodeComponent.set(node.node, textMesh1)
 
 
                     }
@@ -103,52 +110,61 @@ export class GameScene extends Scene {
                                     const tWire = new Wire();
                                     tWire.inC = inWire;
                                     tWire.outC = outC;
-                                    wires.add(tWire);
+                                    this.wires.add(tWire);
                                 }
                             }
                         } else {
-                            wires.add(wire);
+                            this.wires.add(wire);
                         }
                     });
 
                 }
 
                 await Promise.all(asyncList)
-                let first = true
-
-                wires.forEach((wire, i, i2) => {
-
-                    first = false
-                    const connectionParent = wire.inC?.parent;
-                    const relativeFrom = connectionParent?.uiNode?.getInOutComponent(wire.inC?.id)?.getRelativeOutVector();
-                    const nodeComp = nodeComponent.get(connectionParent)
-
-                    let relativeVector = new THREE.Vector3(relativeFrom.x / 10, 1, relativeFrom.y / 10);
-                    if ("transformRelative" in nodeComp) {
-                        relativeVector = nodeComp.transformRelative(relativeVector)
-                    }
-
-                    const wireFrom = nodeComp.position.clone().add(relativeVector)
-
-
-                    const toParent = wire.outC?.parent;
-                    const relativeTo = toParent?.uiNode?.getInOutComponent(wire.outC?.id)?.getRelativeInVector();
-                    const toComp = nodeComponent.get(toParent)
-
-                    let relativeToVector = new THREE.Vector3(relativeTo.x / 10, 1, relativeTo.y / 10);
-                    if ("transformRelative" in toComp) {
-                        relativeToVector = toComp.transformRelative(relativeToVector)
-                    }
-
-
-                    const wireTo = toComp.position.clone().add(relativeToVector)
-                    if (!wireTo || !relativeFrom) {
-                        return undefined;
-                    }
-                    const line = new LineMesh(wireFrom, wireTo)
-                    this.threeScene.add(line)
-                })
+                this.drawWires()
             })
+    }
+
+
+    drawWires() {
+
+        for (const wireEl of this.wireElements) {
+            this.threeScene.remove(wireEl)
+        }
+        this.wireElements.length = 0
+
+        this.wires.forEach((wire, i, i2) => {
+
+            const connectionParent = wire.inC?.parent;
+            const relativeFrom = connectionParent?.uiNode?.getInOutComponent(wire.inC?.id)?.getRelativeOutVector();
+            const nodeComp = this.nodeComponent.get(connectionParent)
+
+            let relativeVector = new THREE.Vector3(relativeFrom.x / 10, 1, relativeFrom.y / 10);
+            if ("transformRelative" in nodeComp) {
+                relativeVector = nodeComp.transformRelative(relativeVector)
+            }
+
+            const wireFrom = nodeComp.position.clone().add(relativeVector)
+
+
+            const toParent = wire.outC?.parent;
+            const relativeTo = toParent?.uiNode?.getInOutComponent(wire.outC?.id)?.getRelativeInVector();
+            const toComp = this.nodeComponent.get(toParent)
+
+            let relativeToVector = new THREE.Vector3(relativeTo.x / 10, 1, relativeTo.y / 10);
+            if ("transformRelative" in toComp) {
+                relativeToVector = toComp.transformRelative(relativeToVector)
+            }
+
+
+            const wireTo = toComp.position.clone().add(relativeToVector)
+            if (!wireTo || !relativeFrom) {
+                return undefined;
+            }
+            const line = new LineMesh(wireFrom, wireTo)
+            this.threeScene.add(line)
+            this.wireElements.push(line)
+        })
     }
 
 
@@ -171,7 +187,7 @@ export class GameScene extends Scene {
 
         // add a camera
         const camera = new PerspectiveCamera(45, width / height, 1, 10000);
-        const controls = new OrbitControls(camera, renderer.domElement);
+        const controls = new CustomControls(camera, renderer.domElement, this);
         controls.minDistance = 5;
         controls.maxDistance = 600;
         controls.maxPolarAngle = Math.PI / 2;

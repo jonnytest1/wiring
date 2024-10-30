@@ -8,6 +8,9 @@
     "entryFile": "src/public-api.ts"
   },
   "allowedNonPeerDependencies": [
-    "jspython-interpreter"
+    "jspython-interpreter",
+    "@types/three",
+    "three",
+    "phaser"
   ]
 }

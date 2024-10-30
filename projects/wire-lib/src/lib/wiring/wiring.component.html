@@ -22,9 +22,9 @@
       </ng-container>
     </div>
     <div style="position: absolute;bottom: 0px;">
-      <input #mode
+      <!--  <input #mode
              type="checkbox"
-             (change)="engineMode=mode.checked"><br>
+             (change)="engineMode=mode.checked"><br> -->
       <button class="menu-button"
               (click)="storeToLocal()">store</button>
       <button class="menu-button"
@@ -52,7 +52,7 @@
                 [nodes]="nodes">
 
     </app-phaser>
-    <div [style.opacity]="engineMode?'0':'1'">
+    <div [class.hidden]="engineMode">
 
       <div #viewinsert>
 

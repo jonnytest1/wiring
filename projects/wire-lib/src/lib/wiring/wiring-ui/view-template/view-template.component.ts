@@ -1,11 +1,11 @@
-import { ChangeDetectorRef, Component, ComponentRef, Input, OnInit, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { ChangeDetectorRef, Component, ComponentRef, Input, OnInit, TemplateRef, ViewChild, ViewContainerRef, type OnDestroy } from '@angular/core';
 
 @Component({
     selector: 'app-view-template',
     templateUrl: './view-template.component.html',
     styleUrls: ['./view-template.component.less']
 })
-export class ViewTemplateComponent implements OnInit {
+export class ViewTemplateComponent implements OnInit, OnDestroy {
 
     @ViewChild('dynamic', {
         read: ViewContainerRef
@@ -19,6 +19,7 @@ export class ViewTemplateComponent implements OnInit {
 
     constructor(private cdr: ChangeDetectorRef) { }
 
+
     ngOnInit() {
     }
 
@@ -27,5 +28,7 @@ export class ViewTemplateComponent implements OnInit {
         this.addingData.hostView.markForCheck()
         this.cdr.markForCheck()
     }
-
+    ngOnDestroy(): void {
+        // this.addingData.hostView.destroy()
+    }
 }

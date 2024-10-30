@@ -9,6 +9,8 @@ import type { Wire } from './wirings/wire';
 import type { Wiring } from './wirings/wiring.a';
 import { iterateJsonStringify } from '../utils/json-stringify-iterator';
 import { UINode } from './wiring-ui/ui-node';
+import { BehaviorSubject } from 'rxjs';
+import { nodesSubject } from './wiring-ui/phaser/scene-data';
 
 
 export interface ControllerRef {
@@ -19,7 +21,7 @@ export interface FromJsonOptions {
   inC?: Connection,
   wire?: Wire | ParrallelWire
   displayNodes?: NodeEl[],
-  viewRef?: ViewContainerRef,
+  viewRef?: () => ViewContainerRef | null,
   injectorFactory?: (pos: Vector2) => Injector
 
   controlRefs: Record<string, Array<Wiring>>
@@ -82,9 +84,13 @@ export class JsonSerializer {
   static async createUiRepresation(node: Wiring & Collection, json: UIJson, optinos: FromJsonOptions) {
     await optinos.constorlRefsInitialized;
     const uiConstructor = optinos.uiSerialisationMap.get(node.constructor)
-    if (uiConstructor && json.ui?.x && json.ui.y && optinos.viewRef) {
+    if (uiConstructor && json.ui?.x && json.ui.y && optinos.viewRef !== undefined) {
       const position = new Vector2(json.ui)
-      const element = optinos.viewRef.createComponent(uiConstructor, {
+
+
+      const viewREf = optinos.viewRef();
+
+      const element = viewREf.createComponent(uiConstructor, {
         injector: optinos.injectorFactory(position)
       })
 
@@ -99,6 +105,13 @@ export class JsonSerializer {
       if (json.ui.rotation) {
         element.instance.setRotation(json.ui.rotation)
       }
+      const prev = nodesSubject.value
+      nodesSubject.next([...prev, {
+        node: node,
+        position: position
+      }])
+
+
 
 
     }

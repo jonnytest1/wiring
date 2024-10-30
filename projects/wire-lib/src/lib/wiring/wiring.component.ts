@@ -14,11 +14,13 @@ import { Wire } from './wirings/wire';
 import { ParrallelWire } from './wirings/parrallel-wire';
 import { NODE_TEMPLATES } from './node-templates';
 import { createStateMachine } from '../utils/state-machine';
+import { nodesSubject } from './wiring-ui/phaser/scene-data';
 
 export interface NodeTemplate {
 
   new(...args): UINode;
   templateIcon: string;
+
 }
 
 export interface NodeEl {
@@ -57,6 +59,12 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
   @ViewChild("sidenavcontent", { read: ElementRef })
   sidenavcontent: ElementRef<HTMLElement>
 
+  @ViewChild("viewinsert", { read: ViewContainerRef })
+  viewinsert
+
+
+  engineMode = false
+
 
   states = createStateMachine("default", "rotation").withData<{
     rotation: {
@@ -76,13 +84,14 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     const structureCache = []
 
     const url = new URL(location.href)
+    this.engineMode = url.searchParams?.has("phaser")
 
     const example = url.searchParams.get("template")
 
     if (example) {
       this.serialize.load({
         remote: true,
-        viewRef: this.viewRef,
+        viewRef: () => this.viewinsert,
         displayNodes: this.nodes,
         injectorFactory: () => this.viewRef.injector,
         templateName: example
@@ -96,7 +105,6 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
         }
       })
     }
-
 
     this.interval = setInterval(() => {
       this.cdr.markForCheck();
@@ -142,7 +150,7 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
 
     this.batteries.push(...await this.serialize.load({
       remote: remote,
-      viewRef: this.viewRef,
+      viewRef: () => this.viewinsert,
       displayNodes: this.nodes,
       injectorFactory: () => this.viewRef.injector,
     }));
@@ -216,7 +224,9 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     this.wirePositions = this.getWirePositions();
   }
 
-
+  getTypeName(template: NodeTemplate) {
+    return template.prototype.factory().typeName
+  }
 
   updatePosition(node: NodeEl, event: MouseEvent) {
 

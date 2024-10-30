@@ -5,6 +5,7 @@ import { Transformator } from '../../wirings/transformator';
 import type { Wire } from '../../wirings/wire';
 import { UINode } from '../ui-node';
 import { MockUiNode } from '../mock-ui';
+import type { NodeTemplate } from '../../wiring.component';
 
 @Component({
   selector: 'app-transformator-ui',

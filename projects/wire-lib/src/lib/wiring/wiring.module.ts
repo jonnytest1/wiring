@@ -8,6 +8,7 @@ import { ExamplePickerComponent } from './example-wires/example-picker/example-p
 import { LocalStorageSerialization } from './storage';
 import { WiringUiModule } from './wiring-ui/wiring-ui.module';
 import { WiringComponent } from './wiring.component';
+import { PhaserComponent } from './wiring-ui/phaser/phaser.component';
 
 @NgModule({
   imports: [
@@ -15,6 +16,7 @@ import { WiringComponent } from './wiring.component';
     MatSidenavModule,
     MatSortModule,
     MatIconModule,
+    PhaserComponent
   ],
   declarations: [WiringComponent, NetDisplayComponent, ConnectionViewComponent, ExamplePickerComponent],
   exports: [WiringComponent, NetDisplayComponent, ConnectionViewComponent, ExamplePickerComponent],

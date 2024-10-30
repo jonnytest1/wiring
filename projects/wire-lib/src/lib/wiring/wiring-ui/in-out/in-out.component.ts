@@ -5,6 +5,8 @@ import { BoundingBox } from '../../util/bounding-box';
 import { WiringDataService } from '../../wiring.service';
 import { ParrallelWire } from '../../wirings/parrallel-wire';
 import { CommonModule } from '@angular/common';
+import { Vector } from 'matter';
+import { Vector2 } from '../../util/vector';
 
 @Component({
   selector: 'app-in-out',
@@ -52,6 +54,14 @@ export class InOutComponent implements OnInit, AfterViewInit {
     return new BoundingBox(this.outLabel).center();
   }
 
+  public getRelativeInVector() {
+    const label = this.inLabel.nativeElement
+    return new Vector2(label.parentElement.offsetLeft + label.offsetLeft, label.parentElement.offsetTop + label.offsetTop)
+  }
+  public getRelativeOutVector() {
+    const label = this.outLabel.nativeElement
+    return new Vector2(label.parentElement.offsetLeft + label.offsetLeft, label.parentElement.offsetTop + label.offsetTop)
+  }
   public getInVector() {
     const inVec = new BoundingBox(this.inLabel).center();
     return inVec;

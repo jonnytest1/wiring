@@ -23,7 +23,8 @@
     "allowSyntheticDefaultImports": true,
     "lib": [
       "ES2022",
-      "dom"
+      "dom",
+      "scripthost"
     ],
     "types": [
       "node"

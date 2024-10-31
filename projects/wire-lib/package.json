@@ -14,7 +14,6 @@
   "dependencies": {
     "@types/three": "^0.169.0",
     "jspython-interpreter": "^2.1.15",
-    "phaser": "^3.86.0",
     "three": "^0.169.0",
     "troika-three-text": "^0.50.2",
     "tslib": "^2.3.0"

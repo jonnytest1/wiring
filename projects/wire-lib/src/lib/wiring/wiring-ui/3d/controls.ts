@@ -1,5 +1,5 @@
 
-import { Line3, Plane, PlaneGeometry, Raycaster, Vector2, Vector3, type Camera, type Intersection, type Object3D, type Scene } from 'three'
+import { Line3, MOUSE, Plane, PlaneGeometry, Raycaster, Vector2, Vector3, type Camera, type Intersection, type Object3D, type Scene } from 'three'
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 import type { GameScene } from './main-scene';
 
@@ -29,9 +29,9 @@ export class CustomControls extends OrbitControls {
 
         domEl.style.cursor = "move"
 
-        const domElWidth = domEl.getBoundingClientRect()
 
         domEl.addEventListener("pointermove", e => {
+            const domElWidth = domEl.getBoundingClientRect()
             this.pointer.x = (e.clientX / (domElWidth.width)) * 2 - 1;
             this.pointer.y = - (e.clientY / domElWidth.height) * 2 + 1;
 
@@ -39,7 +39,7 @@ export class CustomControls extends OrbitControls {
 
             if (!this.isMoving) {
                 this.raycaster.setFromCamera(this.pointer, camera);
-                const intersects = this.raycaster.intersectObjects(this.scene.threeScene.children);
+                const intersects = this.raycaster.intersectObjects(this.scene.children);
                 domEl.style.cursor = "move"
                 this.pointerIntersect = undefined
                 for (let i = 0; i < intersects.length; i++) {
@@ -79,11 +79,13 @@ export class CustomControls extends OrbitControls {
                  target.apply(thisArg, argArray)
              }
          })*/
-
+        this.mouseButtons.MIDDLE = MOUSE.PAN
+        this.mouseButtons.RIGHT = MOUSE.DOLLY
 
         this._onPointerDown = new Proxy(this._onPointerDown, {
             apply: (target, thisArg, argArray) => {
-                if (this.pointerIntersect) {
+                if (this.pointerIntersect && argArray[0].button == 0) {
+
                     this.isMoving = true
                     const directionVector = camera.position.clone().sub(this.pointerIntersect.point)
 

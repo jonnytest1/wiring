@@ -8,7 +8,7 @@ import { ExamplePickerComponent } from './example-wires/example-picker/example-p
 import { LocalStorageSerialization } from './storage';
 import { WiringUiModule } from './wiring-ui/wiring-ui.module';
 import { WiringComponent } from './wiring.component';
-import { PhaserComponent } from './wiring-ui/phaser/phaser.component';
+import { PhaserComponent } from './wiring-ui/3d/3d.component';
 
 @NgModule({
   imports: [

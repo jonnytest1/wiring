@@ -48,10 +48,10 @@
       </span>
     </p>
 
-    <app-phaser *ngIf="engineMode;"
-                [nodes]="nodes">
+    <app-3d *ngIf="engineMode;"
+            [nodes]="nodes">
 
-    </app-phaser>
+    </app-3d>
     <div [class.hidden]="engineMode">
 
       <div #viewinsert>

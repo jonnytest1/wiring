@@ -14,7 +14,6 @@ import { Wire } from './wirings/wire';
 import { ParrallelWire } from './wirings/parrallel-wire';
 import { NODE_TEMPLATES } from './node-templates';
 import { createStateMachine } from '../utils/state-machine';
-import { nodesSubject } from './wiring-ui/phaser/scene-data';
 
 export interface NodeTemplate {
 
@@ -84,7 +83,7 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     const structureCache = []
 
     const url = new URL(location.href)
-    this.engineMode = url.searchParams?.has("phaser")
+    this.engineMode = url.searchParams?.has("3d")
 
     const example = url.searchParams.get("template")
 

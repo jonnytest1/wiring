@@ -10,7 +10,6 @@
   "allowedNonPeerDependencies": [
     "jspython-interpreter",
     "@types/three",
-    "three",
-    "phaser"
+    "three"
   ]
 }

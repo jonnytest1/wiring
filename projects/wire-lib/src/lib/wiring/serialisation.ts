@@ -6,11 +6,11 @@ import type { Collection } from './wirings/collection';
 import type { Connection } from './wirings/connection';
 import type { ParrallelWire } from './wirings/parrallel-wire';
 import type { Wire } from './wirings/wire';
-import type { Wiring } from './wirings/wiring.a';
+import type { IndexableStatic, Wiring } from './wirings/wiring.a';
 import { iterateJsonStringify } from '../utils/json-stringify-iterator';
 import { UINode } from './wiring-ui/ui-node';
 import { BehaviorSubject } from 'rxjs';
-import { nodesSubject } from './wiring-ui/phaser/scene-data';
+import { nodesSubject } from './wiring-ui/3d/scene-data';
 
 
 export interface ControllerRef {
@@ -107,7 +107,7 @@ export class JsonSerializer {
       }
       const prev = nodesSubject.value
       nodesSubject.next([...prev, {
-        node: node,
+        node: node as Wiring & Collection & IndexableStatic,
         position: position
       }])
 

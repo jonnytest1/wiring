@@ -15,10 +15,12 @@ import { TransformedText } from './asset/text';
 import { LineMesh } from './asset/line-mesh';
 import { Esp8x8Matrix } from './asset/model/3dMAtrix';
 import { ResolvablePromise } from '../../../utils/resolvable-promise';
+import { Battery3d } from './asset/model/3dbattery';
 
 
 const modelList = [
-    Esp8x8Matrix
+    Esp8x8Matrix,
+    Battery3d
 ] satisfies Array<Indexable>
 
 
@@ -108,6 +110,7 @@ export class GameScene extends ThreeScene {
                         const msh = new ModelMesh(node as NodeWithPos<never>)
                         this.add(msh)
                         this.nodeComponent.set(node.node, msh)
+
                         //msh.init(this)
                         if ("ready" in msh && msh.ready instanceof ResolvablePromise) {
                             asyncList.push(msh.ready.prRef)
@@ -128,6 +131,7 @@ export class GameScene extends ThreeScene {
                             asyncList.push(msh.ready.prRef)
 
                         } else {
+                            debugger
                             const textMesh1 = new TransformedText(icon) // new THREE.Mesh(text.geometry, materials);
                             textMesh1.position.set(node.position.x / 100, 20, node.position.y / 100)
                             //textMesh1.rotateZ(Math.PI)
@@ -170,6 +174,9 @@ export class GameScene extends ThreeScene {
 
             const connectionParent = wire.inC?.parent;
             const relativeFrom = connectionParent?.uiNode?.getInOutComponent(wire.inC?.id)?.getRelativeOutVector();
+            if (!relativeFrom) {
+                return
+            }
             const nodeComp = this.nodeComponent.get(connectionParent)
 
             let relativeVector = new THREE.Vector3(relativeFrom.x / 10, 1, relativeFrom.y / 10);
@@ -182,6 +189,9 @@ export class GameScene extends ThreeScene {
 
             const toParent = wire.outC?.parent;
             const relativeTo = toParent?.uiNode?.getInOutComponent(wire.outC?.id)?.getRelativeInVector();
+            if (!relativeTo) {
+                return
+            }
             const toComp = this.nodeComponent.get(toParent)
 
             let relativeToVector = new THREE.Vector3(relativeTo.x / 10, 1, relativeTo.y / 10);

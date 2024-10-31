@@ -61,9 +61,10 @@ export class Esp8x8Matrix extends ImageAsset {
                     light.light.position.set(0.86 + rowI * 0.74, -2.05 + colI * 0.739, 3 - .2).sub(this.topLeftVec);
                     // light.position.add(new Vector3(rowI, 5, colI))
 
-                    light.light.color.copy(new Color(led));
                     if (led == "transparent") {
                         light.light.color.copy(new Color("black"))
+                    } else {
+                        light.light.color.copy(new Color(led));
                     }
 
                     light.dotMaterial.color.copy(light.light.color)

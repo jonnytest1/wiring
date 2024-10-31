@@ -64,7 +64,7 @@ export class Esp32UiComponent extends UINode<Esp32> {
   }
 
   override getInOutComponent(id: string) {
-    return this.connectorElements.find(el => el.node.inC.id === id)
+    return this.connectorElements?.find(el => el.node.inC.id === id)
   }
 
   getTextAreaHeight() {

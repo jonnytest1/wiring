@@ -6,6 +6,16 @@
 
 
 <ng-template #options>
+
+    <div *ngIf="controls">
+        <div *ngFor="let entry of controls |keyvalue">
+            bind {{entry.key}} to <select #select
+                    (change)="bindControl(entry.key,select.value)">
+                <option></option>
+                <option>resistance</option>
+            </select>
+        </div>
+    </div>
     <button (click)="snackbarRef.dismiss()">
         close
     </button>

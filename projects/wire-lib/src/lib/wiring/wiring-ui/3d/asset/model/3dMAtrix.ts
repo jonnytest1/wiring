@@ -2,7 +2,7 @@ import { WebGLRenderer, Scene, Camera, BufferGeometry, Material, Group, SpotLigh
 import type { NodeWithPos } from '../../scene-data';
 import { ImageAsset } from '../image';
 import type { Esp32 } from '../../../../wirings/microprocessor/esp32';
-
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 export class Esp8x8Matrix extends ImageAsset {
 
     static typeName = "Esp32"
@@ -13,6 +13,18 @@ export class Esp8x8Matrix extends ImageAsset {
         super(node)
 
         this.receiveShadow = true
+
+        /* const loader = new GLTFLoader();
+         loader.load('assets/models/ESP32-S3-MATRIX_ASM.gltf', function (gltf) {
+             const pcb = gltf.scene.getObjectByName("PCB_ASM")
+             const led = gltf.scene.getObjectByName("LED_ASM")
+             debugger
+ 
+         }, undefined, function (error) {
+ 
+             console.error(error);
+ 
+         });*/
 
         for (let rowI = 0; rowI < 8; rowI++) {
             this.leds[rowI] = []
@@ -46,12 +58,12 @@ export class Esp8x8Matrix extends ImageAsset {
         // this.leds.length = 0
         if (this.node.node.ledMatrix) {
 
-            for (let rowI = 0; rowI < this.node.node.ledMatrix.length; rowI++) {
-                const row = this.node.node.ledMatrix[rowI]
-                for (let colI = 0; colI < row.length; colI++) {
-                    const led = row[colI]
+            for (let rowI = 0; rowI < this.leds.length; rowI++) {
+                const ledRow = this.leds[rowI]
+                for (let colI = 0; colI < ledRow.length; colI++) {
+                    const led = this.node.node.ledMatrix[rowI]?.[colI]
 
-                    const light = this.leds[rowI][colI];
+                    const light = this.leds[rowI]?.[colI];
 
                     /**
                      * x: updown
@@ -61,7 +73,7 @@ export class Esp8x8Matrix extends ImageAsset {
                     light.light.position.set(0.86 + rowI * 0.74, -2.05 + colI * 0.739, 3 - .2).sub(this.topLeftVec);
                     // light.position.add(new Vector3(rowI, 5, colI))
 
-                    if (led == "transparent") {
+                    if (!led || led == "transparent") {
                         light.light.color.copy(new Color("black"))
                     } else {
                         light.light.color.copy(new Color(led));

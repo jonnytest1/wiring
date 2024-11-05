@@ -17,6 +17,7 @@
   "paths": {},
   "exclude": [
     "**/*.spec.ts",
+    "**/*.test.ts",
     "./**/lib/JSCPP.js"
   ],
   "include": [

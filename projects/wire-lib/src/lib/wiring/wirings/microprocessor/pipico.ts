@@ -4,7 +4,6 @@ import { Connection } from '../connection';
 import type { RegisterOptions, REgistrationNode } from '../interfaces/registration';
 import { v4 as uuid } from 'uuid';
 import { Battery } from '../battery';
-import { noConnection, noResistance } from '../resistance-return';
 import { Collection } from '../collection';
 import { getJsonStringifyTime, JsonSerializer, type FromJsonOptions } from '../../serialisation';
 import { MicroPythonExecuter } from './code-processor/micropython-lib/executer';
@@ -78,7 +77,10 @@ export class PiPico extends MicroProcessorBase {
     this.topLevelNodes.push(subNodes)
 
     if (!this.batteryConnection) {
-      this.getBatteryConnection({ forParrallel: 1, addStep() { } })
+      this.getBatteryConnection({
+        forParrallel: 1, addStep() { },
+        checkTime: Date.now()
+      })
     }
 
 
@@ -120,6 +122,7 @@ export class PiPico extends MicroProcessorBase {
         addStep(w) {
 
         },
+        checkTime: Date.now(),
       })
     }
 
@@ -141,7 +144,6 @@ export class PiPico extends MicroProcessorBase {
       uuid: this.instanceUuid,
       code: this.script,
       ui: this.uiNode,
-      //instanceof Battery ? "BatteryRef" : c.parent
       connections: con,
       batteryCon: {
         id: this.reversePinMap.get(this.batteryConnection),

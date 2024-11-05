@@ -3,19 +3,8 @@ import { Collection } from './collection';
 import { ParrallelWire } from './parrallel-wire';
 import { Resistor } from './resistor';
 import { Wire } from './wire';
-
-function connectParralel(...nodes: Array<Array<Collection>>): [ParrallelWire, ParrallelWire] {
-  const parrallelStart = new ParrallelWire()
-  const parrallelEnd = new ParrallelWire()
-
-  nodes.forEach(connectedSet => {
-    Wire.connectNodes(...connectedSet)
-    parrallelStart.newOutC(connectedSet[0].inC)
-    parrallelEnd.newInC(connectedSet[connectedSet.length - 1].outC)
-  })
-  return [parrallelStart, parrallelEnd];
-}
-
+import { connectParralel } from "./test/parralel"
+import { defaultGetResistanceOpts } from './wiring.a';
 describe("parrallel wire", () => {
 
   it('parrallel wire circuit', () => {
@@ -42,7 +31,7 @@ describe("parrallel wire", () => {
 
     Wire.connectNodes(battery, parrallelStart, parrallelEnd, resistor_5, battery)
 
-    expect(+battery.getTotalResistance(null, {}).resistance.toPrecision(3)).toBe(6.33)
+    expect(+battery.getTotalResistance(null, defaultGetResistanceOpts()).resistance.toPrecision(3)).toBe(6.33)
     battery.checkContent(1)
     expect(+resistor_5.voltageDrop.toPrecision(3)).toBe(4.74)
     expect(+parrallelStart.resistance.toPrecision(3)).toBe(1.33)
@@ -78,7 +67,7 @@ describe("parrallel wire", () => {
     Wire.connectNodes(battery, parrallelStart, parrallelEnd, resistor5, battery)
 
 
-    expect(+battery.getTotalResistance(null, {}).resistance.toPrecision(3)).toBe(3)
+    expect(+battery.getTotalResistance(null, defaultGetResistanceOpts()).resistance.toPrecision(3)).toBe(3)
 
     battery.checkContent(1)
     expect(+resistor5.voltageDrop.toPrecision(3)).toBe(6)
@@ -129,7 +118,8 @@ describe("parrallel wire", () => {
     const resistor_5 = new Resistor(5)
     Wire.connectNodes(battery, parrallelStart, parrallelEnd, resistor_5, battery)
 
-    expect(+battery.getTotalResistance(null, {}).resistance).toBeDefined()
+    const totalResistance = +battery.getTotalResistance(null, defaultGetResistanceOpts()).resistance;
+    expect(totalResistance).toBeDefined()
 
     // yes i mesured this example with the multimeter 10 10 in parralel yields only 5ohm
     expect(+innerParrallel[0].resistance.toPrecision(3)).toBe(5);

@@ -1,11 +1,9 @@
-import { Component, Input, OnInit, ViewChild, type AfterViewInit, type ElementRef, type OnChanges, type OnDestroy, type SimpleChanges } from '@angular/core';
-import "phaser"
+import { Component, inject, Input, OnInit, ViewChild, type AfterViewInit, type ElementRef, type OnChanges, type OnDestroy, type SimpleChanges } from '@angular/core';
 import { GameScene } from './main-scene';
-import type { Battery } from '../../wirings/battery';
 import type { NodeEl } from '../../wiring.component';
-import { AmbientLight, DirectionalLight, Fog, PCFSoftShadowMap, PerspectiveCamera, SpotLight, WebGLRenderer } from 'three';
+import { AmbientLight, DirectionalLight, Fog, PCFSoftShadowMap, PerspectiveCamera, SpotLight, SpotLightHelper, WebGLRenderer } from 'three';
 import { CustomControls } from './controls';
-
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-3d',
   templateUrl: './3d.component.html',
@@ -21,15 +19,18 @@ export class PhaserComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input()
   nodes: Array<NodeEl> = [];
 
-  scaleObject: Phaser.Types.Core.ScaleConfig = {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-    //parent: 'thegame',
-  }
+  /* scaleObject: Phaser.Types.Core.ScaleConfig = {
+     mode: Phaser.Scale.FIT,
+     autoCenter: Phaser.Scale.CENTER_BOTH,
+     //parent: 'thegame',
+   }*/
   gameScene: GameScene;
 
   destroyed = false
   renderer: any;
+
+
+  router = inject(Router)
 
   constructor() {
 
@@ -39,8 +40,13 @@ export class PhaserComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   ngAfterViewInit(): void {
-    this.gameScene = new GameScene(this.nodes);
 
+
+
+    this.gameScene = new GameScene(this.nodes);
+    this.gameScene.context = {
+      router: this.router
+    }
     const bounds = this.canvasRef.nativeElement.getBoundingClientRect()
 
     //const width: number = this.game.config.width as number;
@@ -52,8 +58,8 @@ export class PhaserComponent implements OnInit, AfterViewInit, OnDestroy {
       antialias: true
     });
     //renderer.autoClear = true;
-    //renderer.shadowMap.enabled = true;
-    //renderer.shadowMap.type = PCFSoftShadowMap;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = PCFSoftShadowMap;
     this.renderer.setPixelRatio(window.devicePixelRatio * 5)
     // add a camera
     const camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
@@ -98,7 +104,6 @@ export class PhaserComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
     const animate = () => {
-
       this.renderer.render(this.gameScene, camera);
 
     }

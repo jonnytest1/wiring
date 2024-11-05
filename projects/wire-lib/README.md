@@ -33,3 +33,21 @@ include this in assets of your angular json ,
 
 provide ,
 RouterModule.forRoot([]) somewhere for the wiring component to be able to set query params
+
+# Custom Controls
+
+if there is a function "getCustomControls" in the global window object
+
+each key of it can be bound to control components
+
+```typescript
+interface CustomControls {
+  [key: string]: () => number;
+}
+
+function getCustomControls(): CustomControls {
+  return {
+    control1: () => 1,
+  };
+}
+```

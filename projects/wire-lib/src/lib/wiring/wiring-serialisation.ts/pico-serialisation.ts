@@ -1,7 +1,7 @@
 import { JsonSerializer, type FromJsonOptions } from '../serialisation';
 import { PiPico } from '../wirings/microprocessor/pipico';
 import type { Wire } from '../wirings/wire';
-import { SerialisationFactory } from './serialisation-factory';
+import { SerialisationFactory, type SerialisationReturn } from './serialisation-factory';
 
 export class PicoSerialisation extends SerialisationFactory<PiPico> {
 
@@ -12,7 +12,7 @@ export class PicoSerialisation extends SerialisationFactory<PiPico> {
         this.jsonRefPinId = undefined
     }
 
-    override fromJSON(json: any, context: FromJsonOptions): { node: PiPico; wire: Wire; } {
+    override fromJSON(json: any, context: FromJsonOptions): SerialisationReturn<PiPico> {
         if (json.ref) {
 
             this.jsonRefPinId = json.pinConnection

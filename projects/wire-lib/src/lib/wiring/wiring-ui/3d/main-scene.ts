@@ -2,6 +2,10 @@ import {
     AmbientLight, Mesh, SphereGeometry, MeshStandardMaterial, Object3DEventMap,
     Scene as ThreeScene, Line,
     AxesHelper,
+    SpotLight,
+    SpotLightHelper,
+    BoxGeometry,
+    Color,
 } from 'three';
 import * as THREE from "three"
 import type { NodeEl, NodeTemplate } from '../../wiring.component';
@@ -16,6 +20,9 @@ import { LineMesh } from './asset/line-mesh';
 import { Esp8x8Matrix } from './asset/model/3dMAtrix';
 import { ResolvablePromise } from '../../../utils/resolvable-promise';
 import { Battery3d } from './asset/model/3dbattery';
+import { InteropWorld } from './gravity';
+import type { SharedEventMesh } from './event';
+import type { Router } from '@angular/router';
 
 
 const modelList = [
@@ -26,6 +33,10 @@ const modelList = [
 
 const modelMap = Object.fromEntries(modelList.map(m => [m.typeName, m]))
 
+export interface Context {
+    router: Router
+}
+
 export class GameScene extends ThreeScene {
     ball: Mesh<SphereGeometry, MeshStandardMaterial, Object3DEventMap>;
 
@@ -33,6 +44,8 @@ export class GameScene extends ThreeScene {
     nodeComponent: Map<Wiring, Mesh<THREE.BufferGeometry<THREE.NormalBufferAttributes>, THREE.Material | THREE.Material[], Object3DEventMap> | (TransformedAsset & Mesh<THREE.BufferGeometry<THREE.NormalBufferAttributes>, THREE.Material | THREE.Material[], Object3DEventMap>)> = new Map();
 
     wireElements: Array<LineMesh> = []
+    gravity: InteropWorld;
+    context: Context;
 
 
 
@@ -46,10 +59,13 @@ export class GameScene extends ThreeScene {
         }
          */
         super();
-
+        this.gravity = new InteropWorld(this)
+        this.add(this.gravity)
         //this.background.copy(THREE.Color(THREE.Color.NAMES.orange))
         this.background = new THREE.Color(0xa3a3a3);
         this.create()
+
+
     }
 
 
@@ -86,7 +102,7 @@ export class GameScene extends ThreeScene {
 
 
         //threeScene.add(this.ball)
-
+        const nodeYLEvel = 8
 
         nodesSubject
             .subscribe(async nodes => {
@@ -95,50 +111,43 @@ export class GameScene extends ThreeScene {
 
                 for (const node of this.nodeComponent.values()) {
                     this.remove(node)
+                    this.gravity.removeObject(node)
                 }
 
                 this.nodeComponent = new Map<Wiring, Mesh | (TransformedAsset & Mesh)>()
                 const asyncList = []
 
 
-
                 for (let node of nodes) {
+                    let nodeMesh: SharedEventMesh
                     const typeN = (node.node.constructor as unknown as Indexable).typeName
 
                     const ModelMesh = modelMap[typeN]
                     if (ModelMesh) {
-                        const msh = new ModelMesh(node as NodeWithPos<never>)
-                        this.add(msh)
-                        this.nodeComponent.set(node.node, msh)
-
+                        nodeMesh = new ModelMesh(node as NodeWithPos<never>)
                         //msh.init(this)
-                        if ("ready" in msh && msh.ready instanceof ResolvablePromise) {
-                            asyncList.push(msh.ready.prRef)
+                        if ("ready" in nodeMesh && nodeMesh.ready instanceof ResolvablePromise) {
+                            asyncList.push(nodeMesh.ready.prRef)
                         }
-
-
-
-
-
                     } else {
                         const icon = (node.node.uiNode.constructor as NodeTemplate).templateIcon
 
                         if (icon.startsWith("asset:")) {
-                            const msh = new ImageAsset(node)
-                            this.add(msh)
-                            this.nodeComponent.set(node.node, msh)
-
-                            asyncList.push(msh.ready.prRef)
-
+                            const imgMesh = new ImageAsset(node)
+                            nodeMesh = imgMesh
+                            asyncList.push(imgMesh.ready.prRef)
                         } else {
-                            debugger
-                            const textMesh1 = new TransformedText(icon) // new THREE.Mesh(text.geometry, materials);
-                            textMesh1.position.set(node.position.x / 100, 20, node.position.y / 100)
+                            nodeMesh = new TransformedText(icon) // new THREE.Mesh(text.geometry, materials);
                             //textMesh1.rotateZ(Math.PI)
-                            this.add(textMesh1)
-                            this.nodeComponent.set(node.node, textMesh1)
                         }
                     }
+                    nodeMesh.castShadow = true
+                    nodeMesh.position.set(node.position.x / 10, nodeYLEvel, node.position.y / 10)
+                    this.gravity.addGravityObject(nodeMesh, 1)
+
+                    this.add(nodeMesh)
+                    this.nodeComponent.set(node.node, nodeMesh)
+
                     const nodeWires = node.node.uiNode.getWires()
                     nodeWires.forEach(wire => {
                         if (wire instanceof ParrallelWire) {
@@ -160,6 +169,33 @@ export class GameScene extends ThreeScene {
                 await Promise.all(asyncList)
                 this.drawWires()
             })
+
+
+
+        const spotLight: SpotLight = new SpotLight(new Color("white"), 2, 0, 0.4, 0.5, 0.1);
+        spotLight.position.set(10, 200, 10);
+        spotLight.castShadow = true;
+        spotLight.shadow.mapSize.width = 1024;
+        spotLight.shadow.mapSize.height = 1024;
+        spotLight.shadow.camera.near = 1;
+        spotLight.shadow.camera.far = 10000;
+        spotLight.shadow.camera.fov = 80;
+        spotLight.target.position.copy(spotLight.position.clone().sub(new THREE.Vector3(0, 1, 0)));
+
+
+        //this.add(new SpotLightHelper(spotLight))
+        this.add(spotLight);
+        this.add(spotLight.target);
+
+
+        const floor = new Mesh(new BoxGeometry(200, 1, 200), new MeshStandardMaterial({
+            color: "white"
+        })) as SharedEventMesh
+        this.gravity.addGravityObject(floor, undefined, InteropWorld.STATIC)
+        floor.receiveShadow = true
+        floor.position.set(50, -1, 50)
+        this.add(floor)
+
     }
 
 
@@ -179,7 +215,7 @@ export class GameScene extends ThreeScene {
             }
             const nodeComp = this.nodeComponent.get(connectionParent)
 
-            let relativeVector = new THREE.Vector3(relativeFrom.x / 10, 1, relativeFrom.y / 10);
+            let relativeVector = new THREE.Vector3(relativeFrom.x / 10, 0.1, relativeFrom.y / 10);
             if ("transformRelative" in nodeComp) {
                 relativeVector = nodeComp.transformRelative(relativeVector)
             }
@@ -194,7 +230,7 @@ export class GameScene extends ThreeScene {
             }
             const toComp = this.nodeComponent.get(toParent)
 
-            let relativeToVector = new THREE.Vector3(relativeTo.x / 10, 1, relativeTo.y / 10);
+            let relativeToVector = new THREE.Vector3(relativeTo.x / 10, 0.1, relativeTo.y / 10);
             if ("transformRelative" in toComp) {
                 relativeToVector = toComp.transformRelative(relativeToVector)
             }

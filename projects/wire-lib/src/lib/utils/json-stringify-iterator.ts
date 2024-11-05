@@ -3,13 +3,13 @@
 
 
 
-interface Context {
-  parents?: Array<any>,
+export interface JsonContext<T = any> {
+  parents?: Array<T>,
 
   keys?: Array<string>
 }
 
-export function iterateJsonStringify(obj: any, context: Context = {}, stringifyFnc = iterateJsonStringify) {
+export function iterateJsonStringify(obj: any, context: JsonContext = {}, stringifyFnc = iterateJsonStringify) {
   let initial = false
   if (!context.parents) {
     context.parents = []

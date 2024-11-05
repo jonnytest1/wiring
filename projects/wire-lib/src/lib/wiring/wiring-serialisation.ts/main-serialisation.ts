@@ -7,6 +7,7 @@ import type { Wiring } from '../wirings/wiring.a';
 import { BatteryFactory } from './battery-factory';
 import { Esp32Serial } from './esp-serialisation';
 import { LedSerializer } from './led-serialisation';
+import { ParralelWireSerialsiation } from './parralel-wire';
 import { PicoSerialisation } from './pico-serialisation';
 import { RelayFactory } from './relay';
 import { ResistorSerial } from './resistor';
@@ -30,7 +31,8 @@ const serialisations = [
     ToggleSwitchSerialisation,
     TransformatorSer,
     WireSerialsiation,
-    Esp32Serial
+    Esp32Serial,
+    ParralelWireSerialsiation
 ] satisfies Array<new () => SerialisationFactory<Wiring>>
 
 
@@ -84,10 +86,7 @@ export function startSerialize<T extends Wiring>(json, optinos: FromJsonOptions)
 export type JsonSerialisationtype = { type: string, uuid?: string }
 
 
-export function serialize<T extends Wiring>(json: JsonSerialisationtype, optinos: FromJsonOptions): {
-    node: T,
-    wire: Wire
-} {
+export function serialize<T extends Wiring>(json: JsonSerialisationtype, optinos: FromJsonOptions): SerialisationReturn<T> {
 
     const serialiser = serialisationMap[json.type]
 

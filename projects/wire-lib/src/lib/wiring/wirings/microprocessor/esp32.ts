@@ -1,3 +1,4 @@
+import { getJsonStringifyTime } from '../../serialisation';
 import { Connection } from '../connection';
 import { CppExecuter, type CppExecuterParams } from './code-processor/c++-lib/executer';
 import type { Executer } from './code-processor/executer';
@@ -14,6 +15,7 @@ export class Esp32 extends MicroProcessorBase {
 
     override executer: CppExecuter
     ledMatrix: string[][];
+    jsonStringifyTs: number;
 
 
     constructor() {
@@ -47,5 +49,56 @@ export class Esp32 extends MicroProcessorBase {
     }
     override getBottomRowPinId(con: any, i: any): number {
         return 10 - i
+    }
+
+
+    override toJSON(from, context) {
+        if (!getJsonStringifyTime()) {
+            throw new Error("deprecated call")
+        }
+        if (this.jsonStringifyTs === getJsonStringifyTime()) {
+            return {
+                type: Esp32.typeName,
+                ref: this.nodeUuid,
+                pinConnection: this.getId(context.parents.at(-1).outC)
+            }
+        }
+
+
+        this.jsonStringifyTs = getJsonStringifyTime()
+        const con = {}
+        if (!this.batteryConnection) {
+            this.getBatteryConnection({
+                addStep(w) {
+
+                },
+                checkTime: Date.now()
+            })
+        }
+
+        Object.keys(this.pinMap)
+            .filter(pinid => !this.tagMap.ground.includes(+pinid))
+            .filter(pinid => this.pinMap[pinid].mode === "OUT")
+            .forEach(pinid => {
+                const pin = this.pinMap[+pinid];
+
+                con[pinid] = {
+                    connection: pin.con.connectedTo,
+                    mode: pin.mode,
+                    outputValue: pin.outputValue
+                }
+            })
+
+        return {
+            type: Esp32.typeName,
+            uuid: this.nodeUuid,
+            code: this.script,
+            ui: this.uiNode,
+            connections: con,
+            batteryCon: {
+                id: this.reversePinMap.get(this.batteryConnection),
+                connection: this.batteryConnection.connectedTo
+            }
+        }
     }
 }

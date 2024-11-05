@@ -1,9 +1,15 @@
+import type { Connection } from '../connection';
 import { Wiring } from '../wiring.a';
 
 
 
 
-export type REgistrationNode = { name: string, details?: any } | Array<REgistrationNode>
+export type REgistrationNode = {
+  name: string,
+  details?: any,
+  node?: Wiring
+  connection?: Connection
+} | Array<Array<REgistrationNode>>
 
 
 export interface RegisterOptions {
@@ -17,4 +23,5 @@ export interface RegisterOptions {
 
 
   withSerialise: boolean
+  forCalculation: boolean
 }

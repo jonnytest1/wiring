@@ -1,12 +1,12 @@
 import { JsonSerializer, type FromJsonOptions } from '../serialisation';
 import { Resistor } from '../wirings/resistor';
 import type { Wire } from '../wirings/wire';
-import { SerialisationFactory } from './serialisation-factory';
+import { SerialisationFactory, type SerialisationReturn } from './serialisation-factory';
 
 export class ResistorSerial extends SerialisationFactory<Resistor> {
 
     override factory = Resistor;
-    override fromJSON(json: any, context: FromJsonOptions): { node: Resistor; wire: Wire; } {
+    override fromJSON(json: any, context: FromJsonOptions): SerialisationReturn<Resistor> {
         const self = new Resistor(json.resistance);
         self.readFromJson(json)
         if (context.wire) {

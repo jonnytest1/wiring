@@ -19,6 +19,10 @@ export class TransformedText extends troikaText.Text implements TransformedAsset
 
 
     }
+
+
+
+
     public transformRelative(relativeVector: Vector3): Vector3 {
         return new Vector3(relativeVector.x * 4, relativeVector.y, relativeVector.z * 1.8)
     }

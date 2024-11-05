@@ -14,7 +14,6 @@ export class LedUiComponent extends UINode<LED> implements OnInit {
   };
 
   constructor(injector: Injector) {
-    debugger
     super(new LED(), injector);
   }
   public static templateIcon = 'emoji_objects';

@@ -5,8 +5,23 @@ import { SerialisationFactory } from './serialisation-factory';
 
 export class BatteryFactory extends SerialisationFactory<Battery> {
     override factory = Battery;
+
+
+    private refMap: Record<string, Battery> = {}
+
     override fromJSON(fromJSON: any, options: FromJsonOptions) {
         if (typeof fromJSON !== "string") {
+
+            if ("ref" in fromJSON) {
+                const targetBattery = this.refMap[fromJSON.ref]
+                return {
+                    node: targetBattery,
+                    wire: options.wire
+                }
+
+            }
+
+
 
             if (fromJSON.charge == "Infinity") {
                 fromJSON.charge = Infinity
@@ -16,6 +31,7 @@ export class BatteryFactory extends SerialisationFactory<Battery> {
             }
             const battery = new Battery(fromJSON.voltage, +(fromJSON.charge ?? 0.001));
             battery.enabled = fromJSON.enabled;
+            this.refMap[fromJSON.nodeUuid] = battery;
             battery.maxAmpereSeconds = +(fromJSON.maxAmpere ?? +(fromJSON.charge ?? 0.0001));
             JsonSerializer.createUiRepresation(battery, fromJSON as any, options);
 

@@ -1,4 +1,4 @@
-import { BoxGeometry, Color, Mesh, MeshBasicMaterial, MeshLambertMaterial, MeshStandardMaterial, TextureLoader, Vector3 } from 'three';
+import { BoxGeometry, Color, Mesh, MeshBasicMaterial, MeshLambertMaterial, MeshStandardMaterial, TextureLoader, Vector3, type BufferGeometry, type Material, type NormalBufferAttributes, type Object3DEventMap } from 'three';
 import type { Wiring } from '../../../wirings/wiring.a';
 import type { Collection } from '../../../wirings/collection';
 import type { NodeWithPos } from '../scene-data';
@@ -6,7 +6,12 @@ import type { NodeTemplate } from '../../../wiring.component';
 import { ResolvablePromise } from '../../../../utils/resolvable-promise';
 import { TransformedAsset } from './transformed-asset';
 
-export class ImageAsset extends Mesh implements TransformedAsset {
+
+export type ImageEventMap = Object3DEventMap & {
+    loadedgeo
+}
+
+export class ImageAsset extends Mesh<BoxGeometry, Material, ImageEventMap> implements TransformedAsset {
 
 
     private imageScale = 100
@@ -43,6 +48,7 @@ export class ImageAsset extends Mesh implements TransformedAsset {
             meshMaterial.needsUpdate = true
             imageTexture.needsUpdate = true
             this.updateMatrix()
+            this.dispatchEvent({ type: "loadedgeo" })
         }
     }
 

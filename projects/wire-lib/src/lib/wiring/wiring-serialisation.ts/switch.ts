@@ -1,12 +1,12 @@
 import { JsonSerializer, type FromJsonOptions } from '../serialisation';
 import { Switch } from '../wirings/switch';
 import type { Wire } from '../wirings/wire';
-import { SerialisationFactory } from './serialisation-factory';
+import { SerialisationFactory, type SerialisationReturn } from './serialisation-factory';
 
 export class SwitchFactory extends SerialisationFactory<Switch> {
 
     override factory = Switch;
-    override fromJSON(json: any, context: FromJsonOptions): { node: Switch; wire: Wire; } {
+    override fromJSON(json: any, context: FromJsonOptions): SerialisationReturn<Switch> {
         const self = new Switch();
         self.enabled = json.enabled ?? false
         if (context.wire) {

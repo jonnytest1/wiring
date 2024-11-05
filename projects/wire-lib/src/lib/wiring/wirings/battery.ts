@@ -1,10 +1,16 @@
+import { v4 } from 'uuid';
 import { Collection } from './collection';
 import { Connection } from './connection';
 import type { RegisterOptions, REgistrationNode } from './interfaces/registration';
 import { noResistance } from './resistance-return';
-import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ResistanceReturn, Wiring } from './wiring.a';
+import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ProcessCurrentOptions, ProcessCurrentReturn, ResistanceReturn, Wiring } from './wiring.a';
+import { Impedance } from './units/impedance';
+import { Voltage } from './units/voltage';
+import { Current } from './units/current';
+import { Charge } from './units/charge';
 
 export class Battery extends Collection {
+
 
 
   static override typeName = "Battery"
@@ -30,11 +36,12 @@ export class Battery extends Collection {
 
   currentCurrent_ampere: number;
 
+
   maxAmpereSeconds: number;
 
   enabled = false;
 
-  override getTotalResistance(from: Connection | null, options: GetResistanceOptions): ResistanceReturn {
+  override getTotalResistance(from: Wiring | null, options: GetResistanceOptions): ResistanceReturn {
     options.addStep(this)
     if (!from) {
       return this.outC.getTotalResistance(this, options);
@@ -42,6 +49,9 @@ export class Battery extends Collection {
       return noResistance(this);
     }
 
+  }
+  override getImpedance(): Impedance {
+    return new Impedance(0)
   }
 
   override pushCurrent(options: CurrentOption, from: Wiring): CurrentCurrent {
@@ -59,7 +69,30 @@ export class Battery extends Collection {
       };
     }
   }
+  override processCurrent(options: ProcessCurrentOptions): ProcessCurrentReturn {
+    if (this.enabled) {
+      this.networkResistance = options.totalImpedance.impedance
 
+    } else {
+      this.networkResistance = NaN;
+    }
+    if (isNaN(this.networkResistance) || this.ampereSeconds == 0) {
+      return options
+    }
+    const batteryVoltage = new Voltage(this.voltage);
+    const current = Current.fromVoltage(batteryVoltage, options.totalImpedance)
+
+    try {
+      return {
+        ...options,
+        voltage: options.voltage.with(batteryVoltage),
+        current: current
+      }
+    } finally {
+      const processedCharge = Charge.from(current, options.time);
+      this.currentCurrent_ampere = Math.max(this.currentCurrent_ampere - processedCharge.coulomb, 0)
+    }
+  }
 
   checkContent(deltaSeconds: number) {
     if (this.enabled) {
@@ -67,7 +100,8 @@ export class Battery extends Collection {
       const opts: GetResistanceOptions = {
         addStep(w) {
           steps.push(w)
-        }
+        },
+        checkTime: Date.now()
       };
       const totalResistance = this.getTotalResistance(null, opts);
       this.networkResistance = totalResistance.resistance;
@@ -85,7 +119,7 @@ export class Battery extends Collection {
         triggerTimestamp: Date.now()
       }, null);
     } else {
-      this.currentCurrent_ampere = this.voltage / this.networkResistance;
+      this.currentCurrent_ampere = this.voltage / Math.max(this.networkResistance, 0.0001);
       this.currentCurrent_ampere = Math.min(this.maxAmpereSeconds, this.currentCurrent_ampere);
       const result = this.pushCurrent({
         current: this.currentCurrent_ampere,
@@ -110,6 +144,10 @@ export class Battery extends Collection {
 
   override register(options: RegisterOptions) {
     const instanceNode: REgistrationNode = { name: "Battery" };
+    if (options.forCalculation) {
+      instanceNode.node = this
+    }
+
     if (options.from == this.inC) {
       options.nodes.push(instanceNode);
       return;
@@ -124,6 +162,7 @@ export class Battery extends Collection {
       }
     }
 
+
     options.nodes.push(instanceNode);
     this.outC?.register(options);
   }
@@ -135,21 +174,29 @@ export class Battery extends Collection {
       from: this,
       parrallelLevel: 0,
       registrationTimestamp: Date.now(),
-      withSerialise: false
+      withSerialise: false,
+      forCalculation: false
     });
     return nodes;
   }
   override toJSON(key?) {
     //throw new Error("deprecated")
     if (key == "connectedWire") {
-      return "BatteryRef"
+      return {
+        type: Battery.typeName,
+        ref: this.nodeUuid
+      }
     } else if (key) {
-      return "BatteryRef"
+      return {
+        type: Battery.typeName,
+        ref: this.nodeUuid
+      }
     }
     return {
       type: Battery.typeName,
       prov: this.outC.connectedTo,
       voltage: this.voltage,
+      nodeUuid: this.nodeUuid,
       ui: this.uiNode,
       enabled: this.enabled,
       charge: this.ampereSeconds === Infinity ? "Infinity" : this.ampereSeconds / (60 * 60),

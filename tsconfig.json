@@ -42,6 +42,7 @@
     "strictTemplates": true
   },
   "exclude": [
-    "dist"
+    "dist",
+    "**/*.test.ts"
   ]
 }

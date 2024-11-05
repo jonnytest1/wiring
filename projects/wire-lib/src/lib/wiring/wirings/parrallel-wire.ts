@@ -1,11 +1,12 @@
 import { Connection } from './connection';
-import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ResistanceReturn } from './wiring.a';
+import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ProcessCurrentOptions, ProcessCurrentReturn, ResistanceReturn } from './wiring.a';
 import { Wiring } from './wiring.a';
 import { v4 } from "uuid"
 import type { FromJsonOptions } from '../serialisation';
 import { Wire } from './wire';
-import type { RegisterOptions } from './interfaces/registration';
+import type { RegisterOptions, REgistrationNode } from './interfaces/registration';
 import { noConnection } from './resistance-return';
+import type { Impedance } from './units/impedance';
 
 export class ParrallelWire extends Wiring {
   static typeName = "ParrallelWire"
@@ -123,9 +124,12 @@ export class ParrallelWire extends Wiring {
     const rstCurrent = this.outC.map(container => {
       const voltage = options.voltage
       const percentage = this.outCResistancePrecentageMap.get(container)
+
+      const voltagePercentage = percentage / this.resistancetotal
+
       let current;
       if (isFinite(this.resistancetotal)) {
-        current = options.current * (percentage)
+        current = options.current * (voltagePercentage)
       } else if (isFinite(percentage)) {
         current = 0
       } else {
@@ -182,7 +186,11 @@ export class ParrallelWire extends Wiring {
   }
 
   register(options: RegisterOptions) {
-    options.nodes.push({ name: ParrallelWire.typeName })
+    const instance: REgistrationNode = { name: ParrallelWire.typeName };
+    if (!options.forCalculation) {
+      options.nodes.push(instance)
+    }
+
 
     const nodes = this.outC.map(c => {
       const parrallelNodes = []
@@ -226,11 +234,16 @@ export class ParrallelWire extends Wiring {
   }
 
 
+  override getImpedance(): Impedance {
+    throw new Error('Method not implemented.');
+  }
+  override processCurrent(options: ProcessCurrentOptions): ProcessCurrentReturn {
+    throw new Error('Method not implemented.');
+  }
   toJSON() {
     return {
       type: ParrallelWire.typeName,
       uuid: this.instance,
-      //instanceof Battery ? "BatteryRef" : c.parent
       outC: this.outC.map(c => c.parent)
     }
   }
@@ -264,39 +277,5 @@ export class ParrallelWire extends Wiring {
         }
       })
     })
-  }
-
-  static fromJSON(json: any, context: FromJsonOptions): Wire {
-    const wire = new ParrallelWire()
-    wire.instance = json.uuid
-    wire.newInC(context.inC)
-
-
-    let returnWire = null
-
-    if (context.controllerRefs[json.uuid]) {
-      context.controlRefs[json.uuid] ??= []
-      context.controlRefs[json.uuid].push(wire)
-    } else {
-      context.controllerRefs[json.uuid] = wire
-    }
-
-    for (const out of json.outC) {
-
-      if (out == "BatteryRef") {
-        returnWire = wire;
-        continue
-      }
-      const connected = context.loadElement(out, { ...context, wire: wire })
-      if (!returnWire) {
-        returnWire = connected
-      }
-    }
-    if (!returnWire) {
-      const tWire = new Wire()
-      tWire.connect(wire.newOutC())
-      return tWire
-    }
-    return returnWire
   }
 }

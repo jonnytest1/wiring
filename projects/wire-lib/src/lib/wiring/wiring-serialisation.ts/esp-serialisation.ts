@@ -9,7 +9,7 @@ export class Esp32Serial extends SerialisationFactory<Esp32> {
 
     override factory = Esp32;
     jsonRefPinId: number;
-    override fromJSON(json: any, context: FromJsonOptions): { node: Esp32; wire: Wire; } {
+    override fromJSON(json: any, context: FromJsonOptions): SerialisationReturn<Esp32> {
         if (json.ref) {
 
             this.jsonRefPinId = json.pinConnection

@@ -1,11 +1,13 @@
 
 import type { Connection } from './connection';
 import type { RegisterOptions } from './interfaces/registration';
-import type { CurrentCurrent, CurrentOption, GetResistanceOptions, Indexable, IndexableStatic, ResistanceReturn } from './wiring.a';
+import type { Impedance } from './units/impedance';
+import type { CurrentCurrent, CurrentOption, GetResistanceOptions, Indexable, IndexableStatic, ProcessCurrentOptions, ProcessCurrentReturn, ResistanceReturn } from './wiring.a';
 import { Wiring } from './wiring.a';
 
 
 export class Collection extends Wiring {
+
 
   static typeName = "Collection"
   constructor(public inC: Connection | null, public outC: Connection | null) {
@@ -41,7 +43,12 @@ export class Collection extends Wiring {
   pushCurrent(options: CurrentOption, from: Wiring): CurrentCurrent {
     throw new Error('Method not implemented.');
   }
-
+  override getImpedance(): Impedance {
+    throw new Error('Method not implemented.');
+  }
+  override processCurrent(options: ProcessCurrentOptions): ProcessCurrentReturn {
+    throw new Error('Method not implemented.');
+  }
   mockSetUiNode(node: Wiring["uiNode"]) {
     this.uiNode = node
   }

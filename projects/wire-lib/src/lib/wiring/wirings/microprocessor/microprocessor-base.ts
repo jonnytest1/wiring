@@ -275,7 +275,10 @@ export abstract class MicroProcessorBase extends Collection {
             if (!this.lastTriggerTimestamp || this.lastTriggerTimestamp !== options.triggerTimestamp) {
                 this.lastTriggerTimestamp = options.triggerTimestamp
                 if (!this.batteryConnection) {
-                    this.getBatteryConnection({ forParrallel: 1, addStep() { } })
+                    this.getBatteryConnection({
+                        forParrallel: 1, addStep() { },
+                        checkTime: Date.now()
+                    })
                 }
                 if (!this.batteryConnection) {
 

@@ -11,6 +11,7 @@ import { iterateJsonStringify } from '../utils/json-stringify-iterator';
 import { UINode } from './wiring-ui/ui-node';
 import { BehaviorSubject } from 'rxjs';
 import { nodesSubject } from './wiring-ui/3d/scene-data';
+import type { SerialisationReturn } from './wiring-serialisation.ts/serialisation-factory';
 
 
 export interface ControllerRef {
@@ -31,7 +32,7 @@ export interface FromJsonOptions {
   templateName?: string
 
   uiSerialisationMap?: Map<FromJson<"">, new (...args) => UINode>;
-  loadElement: (json, context: FromJsonOptions) => { node: unknown, wire: Wire }
+  loadElement: (json, context: FromJsonOptions) => SerialisationReturn<never>
 }
 
 

@@ -5,7 +5,6 @@ import { BoundingBox } from '../../util/bounding-box';
 import { WiringDataService } from '../../wiring.service';
 import { ParrallelWire } from '../../wirings/parrallel-wire';
 import { CommonModule } from '@angular/common';
-import { Vector } from 'matter';
 import { Vector2 } from '../../util/vector';
 
 @Component({

@@ -5,11 +5,14 @@ import type { UINode } from '../wiring-ui/ui-node';
 import { Collection } from './collection';
 import { Connection } from './connection';
 import type { Wire } from './wire';
-import type { CurrentCurrent, CurrentOption, GetResistanceOptions, Indexable, IndexableStatic, ResistanceReturn, Wiring } from './wiring.a';
+import type { CurrentCurrent, CurrentOption, GetResistanceOptions, Indexable, IndexableStatic, ProcessCurrentOptions, ProcessCurrentReturn, ResistanceReturn, Wiring } from './wiring.a';
 import { v4 } from "uuid"
 import type { RegisterOptions, REgistrationNode } from './interfaces/registration';
+import { Impedance } from './units/impedance';
+import { Voltage } from './units/voltage';
 
 export class Resistor extends Collection implements Wiring, IndexableStatic {
+
 
   static override typeName = "Resistor"
   override uiNode?: UINode;
@@ -18,6 +21,7 @@ export class Resistor extends Collection implements Wiring, IndexableStatic {
   incomingCurrent: CurrentOption;
 
   uuid = v4()
+  voltageDropV: Voltage;
   constructor(public resistance: number) {
     super(null, null)
     this.inC = new Connection(this, "res_in")
@@ -29,9 +33,21 @@ export class Resistor extends Collection implements Wiring, IndexableStatic {
     return { ...afterResistance, resistance: afterResistance.resistance + this.resistance }
   }
 
-
+  override getImpedance(): Impedance {
+    return new Impedance(this.resistance)
+  }
   evaluateFunction(options: CurrentOption) {
     // to implement
+  }
+  override processCurrent(options: ProcessCurrentOptions): ProcessCurrentReturn {
+    this.incomingCurrent = { current: options.current.current } as CurrentOption
+    this.voltageDropV = Voltage.fromCurrent(options.current, new Impedance(this.resistance))
+
+    this.evaluateFunction(this.incomingCurrent)
+    return {
+      ...options,
+      voltage: options.voltage.dropped(this.voltageDropV)
+    }
   }
 
   override pushCurrent(options: CurrentOption, from: Wiring): CurrentCurrent {
@@ -45,7 +61,11 @@ export class Resistor extends Collection implements Wiring, IndexableStatic {
     }, this);
   }
   override  register(options: RegisterOptions) {
-    const repr: REgistrationNode = { name: Resistor.typeName };
+    if (options.from === this.outC) {
+      return
+    }
+
+    const repr: REgistrationNode = { name: this.constructor.typeName };
     if (options.withSerialise) {
       repr.details = {
         resistance: this.resistance,
@@ -53,7 +73,9 @@ export class Resistor extends Collection implements Wiring, IndexableStatic {
         ui: this.uiNode,
       }
     }
-
+    if (options.forCalculation) {
+      repr.node = this
+    }
     options.nodes.push(repr)
     return this.outC.register({ ...options, from: this })
   }

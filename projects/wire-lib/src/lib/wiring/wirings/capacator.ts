@@ -1,5 +1,6 @@
 import { Collection } from './collection';
 import { Connection } from './connection';
+import { EULER } from './constant';
 import type { RegisterOptions, REgistrationNode } from './interfaces/registration';
 import { noConnection, noResistance } from './resistance-return';
 import { Capacitance } from './units/capacitance';
@@ -12,7 +13,7 @@ import { type GetResistanceOptions, type ResistanceReturn, type CurrentCurrent, 
 
 export class Capacitor extends Wiring {
 
-    static override typeName = "Capacitor"
+    static readonly typeName = "Capacitor"
 
     // the capacitor acts as an open circuit once it is fully charged.
 
@@ -21,7 +22,7 @@ export class Capacitor extends Wiring {
      * charge in coulomb
      */
     charge: Charge = new Charge(0)
-    voltageDrop = 0
+    voltageDrop: Voltage
     supplyVoltage: Voltage;
     capacitance: Capacitance;
     maxVoltage: Voltage;
@@ -30,6 +31,8 @@ export class Capacitor extends Wiring {
 
     private readonly defaultREsistance = new Impedance(0.001);
     reverseResistanceCheckTime: number;
+    outC: Connection;
+    inC: Connection;
 
     /**
      * 
@@ -37,7 +40,7 @@ export class Capacitor extends Wiring {
      * @param maxVoltage in V
      */
     constructor(capacitance: number, maxVoltage: number) {
-        super(null, null);
+        super()
         this.outC = new Connection(this, 'cap_negative');
         this.inC = new Connection(this, 'cap_positive');
 
@@ -48,12 +51,20 @@ export class Capacitor extends Wiring {
     }
 
     getTimeConstant(resistance = this.defaultREsistance) {
-        return Time.timeConstant(this.defaultREsistance, this.capacitance)
+        return Time.timeConstant(resistance, this.capacitance)
     }
 
 
     getVoltage() {
         return Voltage.fromCharge(this.charge, this.capacitance)
+    }
+
+    override providedVoltage(): Voltage {
+        return this.getVoltage()
+    }
+
+    getMaxCharge(supplyVoltage: Voltage) {
+        return Charge.fromVoltage(supplyVoltage, this.capacitance)
     }
 
     override register(options: RegisterOptions) {
@@ -66,7 +77,16 @@ export class Capacitor extends Wiring {
             instance.connection = options.from
         }
         options.nodes.push(instance);
-        return this.outC?.register({ ...options, from: this });
+
+        if (options.from == null) {
+            // reflow calculation
+            options.next(this.inC!, { ...options, from: this })
+
+        } else {
+            options.next(this.outC, { ...options, from: this })
+        }
+
+
     }
 
 
@@ -89,77 +109,79 @@ export class Capacitor extends Wiring {
 
     }
     override processCurrent(options: ProcessCurrentOptions): ProcessCurrentReturn {
-        throw new Error('Method not implemented.');
-    }
-    /*  override getTotalResistance(from: Wiring, options: GetResistanceOptions): ResistanceReturn {
-          if (options.checkTime === this.reverseResistanceCheckTime) {
-              return noConnection(this)
-          }
-  
-          if (this.getVoltage() >= this.supplyVoltage) {
-              return noConnection(this)
-          }
-  
-          const w = 0
-          const j = 0
-  
-          if (this.charge.isZero()) {
-              return {
-                  resistance: this.defaultREsistance,
-                  steps: [this],
-                  afterBlock: []
-              }
-          }
-          const impedance = Impedance.fromVoltages(this.maxVoltage, this.getVoltage())
-  
-          console.log(impedance.impedance)
-          return {
-              resistance: impedance.impedance,
-              afterBlock: [],
-              steps: [this]
-          }
-  
-  
-      }
-  */
 
-    override pushCurrent(options: CurrentOption, from: Wiring): CurrentCurrent {
-        this.supplyVoltage = new Voltage(options.voltage)
-        this.lastCurrent = new Current(options.current)
-        if (this.getVoltage() < this.supplyVoltage) {
+        const currentVoltage = this.getVoltage();
+        if (options.fromConnection === null) {
+            const current = Current.fromVoltage(currentVoltage, options.totalImpedance)
 
-            this.charge.add(Charge.from(new Current(options.current), new Time(options.deltaSeconds)))
+            try {
+                return {
+                    ...options,
+                    voltage: options.voltage.with(currentVoltage),
+                    supplyVoltage: options.supplyVoltage.with(currentVoltage),
+                    current: current
+                }
+            } finally {
+                const processedCharge = Charge.from(current, options.deltaTime);
+                this.charge.process(processedCharge)
+            }
+
+        }
+
+        this.supplyVoltage = options.supplyVoltage
+        this.lastCurrent = options.current
+
+        if (currentVoltage.dropped(options.voltage).isPositive()) {
+
+            options.postProcess(() => {
+                // const subSolver = this.solver.from(this, currentVoltage)
+                // subSolver.check(options.deltaTime)
+                //debugger
+            })
+            //this.reverseResistanceCheckTime = options.triggerTimestamp
 
 
-            return this.outC.pushCurrent({
-                ...options,
-                current: 0,
-                voltage: options.voltage - this.voltageDrop
-            }, this)
-        } else {
-            const voltage = this.getVoltage().voltage;
-            debugger
-            this.reverseResistanceCheckTime = options.triggerTimestamp
-
-            this.solver.from(this)
 
 
-            const resistance = this.inC.getTotalResistance(this, {
+            /*const resistance = this.inC.getTotalResistance(this, {
                 ...defaultGetResistanceOpts(),
                 checkTime: options.triggerTimestamp
             })
-            const current = voltage / resistance.resistance
-            this.inC.pushCurrent({
+            const current = voltage / resistance.resistance*/
+            /*this.inC.pushCurrent({
                 voltage: voltage,
                 current: current,
                 deltaSeconds: options.deltaSeconds,
                 resistance: 0,
                 triggerTimestamp: options.triggerTimestamp,
-            }, this)
-
-            debugger
+            }, this)*/
         }
 
+        if (currentVoltage < this.supplyVoltage) {
+            //q = Vs(1 - e ^ (-t / RC)) * c
+            const rc = this.getTimeConstant(options.totalImpedance).seconds;
+
+
+
+            const exponent = Math.pow(EULER, (-options.deltaTime.seconds) / rc);
+
+            const maxCharge = this.getMaxCharge(options.supplyVoltage)
+
+            const chargeOffset = (this.charge.coulomb - maxCharge.coulomb) * exponent;
+            const chargeDiff = maxCharge.coulomb + chargeOffset - this.charge.coulomb
+
+            this.charge.add(new Charge(chargeDiff))
+
+            return {
+                ...options,
+                current: Current.ZERO(),
+                voltage: options.voltage
+            }
+        }
+
+
+
     }
+
 
 }

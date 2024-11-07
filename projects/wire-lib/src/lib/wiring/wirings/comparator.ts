@@ -21,10 +21,15 @@ export class Comparator extends Wiring {
         if (opts.from === this.negative) {
             return new Impedance(Infinity)
         } else if (opts.from === this.positive) {
-            return new Impedance(Infinity)
+            return new Impedance(Infinity);
         }
         return new Impedance(0)
     }
+
+    getVoltageDifferential() {
+        return this.negativeVoltage.dropped(this.positiveVoltage)
+    }
+
     override processCurrent(options: ProcessCurrentOptions): ProcessCurrentReturn {
         if (options.fromConnection === this.negative) {
             this.negativeVoltage = options.voltage
@@ -33,10 +38,10 @@ export class Comparator extends Wiring {
             this.positiveVoltage = options.voltage
             return options
         } else if (options.fromConnection === this.vcc) {
-            if (!this.negativeVoltage.dropped(this.positiveVoltage).isPositive()) {
+            if (!this.getVoltageDifferential().isPositive()) {
                 return {
                     ...options,
-                    current: new Current(0)
+                    current: Current.ZERO()
                 }
             } else {
                 return options
@@ -44,9 +49,9 @@ export class Comparator extends Wiring {
         }
         throw new Error('Method not implemented.');
     }
-    override register(options: RegisterOptions): void {
+    override register(options: RegisterOptions): void | false {
         if (options.from === this.ground) {
-            return
+            return false
         }
 
 
@@ -61,9 +66,10 @@ export class Comparator extends Wiring {
         options.nodes.push(instance)
 
         if (options.from == this.vcc) {
-            this.vOut.register({ ...options, from: this })
+
+            return options.next(this.vOut, { ...options, from: this })
         } else {
-            this.ground.register({ ...options, from: this })
+            return options.next(this.ground, { ...options, from: this })
         }
 
 

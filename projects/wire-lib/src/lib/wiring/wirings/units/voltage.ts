@@ -5,6 +5,8 @@ import type { Impedance } from './impedance';
 
 export class Voltage {
 
+    static ZERO = new Voltage(0);
+
 
     // in Volt
 
@@ -23,8 +25,19 @@ export class Voltage {
         return this.voltage > 0
     }
 
+    isGreaterThan(voltageBefore: Voltage | null) {
+        if (!voltageBefore) {
+            return false
+        }
+        return this.voltage > voltageBefore.voltage
+    }
+
     with(other: Voltage) {
         return new Voltage(this.voltage + other.voltage)
+    }
+
+    fraction(percentage: number) {
+        return new Voltage(this.voltage * percentage)
     }
 
 

@@ -1,10 +1,13 @@
 import { Battery } from './battery';
 import { Collection } from './collection';
-import { ParrallelWire } from './parrallel-wire';
 import { Resistor } from './resistor';
 import { Wire } from './wire';
 import { connectParralel } from "./test/parralel"
 import { defaultGetResistanceOpts } from './wiring.a';
+import { ComputationMatrix } from './computation/computation-matrix';
+import { Voltage } from './units/voltage';
+import type { Connection } from './connection';
+
 describe("parrallel wire", () => {
 
   it('parrallel wire circuit', () => {
@@ -30,6 +33,16 @@ describe("parrallel wire", () => {
     const resistor_5 = new Resistor(5)
 
     Wire.connectNodes(battery, parrallelStart, parrallelEnd, resistor_5, battery)
+
+
+    const cm = new ComputationMatrix()
+    cm.register(battery.inC!, battery)
+    cm.register(resistor_4.inC!, resistor_4)
+    cm.register(resistor_2.inC!, resistor_2)
+    cm.register(resistor_5.inC!, resistor_5)
+    debugger
+
+
 
     expect(+battery.getTotalResistance(null, defaultGetResistanceOpts()).resistance.toPrecision(3)).toBe(6.33)
     battery.checkContent(1)
@@ -124,4 +137,8 @@ describe("parrallel wire", () => {
     // yes i mesured this example with the multimeter 10 10 in parralel yields only 5ohm
     expect(+innerParrallel[0].resistance.toPrecision(3)).toBe(5);
   })
+
+
+
+
 })

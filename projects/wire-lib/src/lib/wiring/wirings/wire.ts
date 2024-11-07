@@ -2,7 +2,7 @@
 import type { JsonContext } from '../../utils/json-stringify-iterator';
 import type { FromJsonOptions } from '../serialisation';
 import { Collection } from './collection';
-import type { Connection } from './connection';
+import { Connection } from './connection';
 import type { RegisterOptions, REgistrationNode } from './interfaces/registration';
 import { Parrallel } from './parrallel';
 import { ParrallelWire } from './parrallel-wire';
@@ -17,8 +17,11 @@ export class Wire extends Wiring {
   connections: Array<Connection> = []
   constructor(inConnection?: Connection) {
     super()
-    this.connections.push(inConnection)
-    inConnection.connectedTo = this
+
+    if (inConnection) {
+      this.connections.push(inConnection)
+      inConnection.connectedTo = this
+    }
   }
 
   resistance = 0;
@@ -29,33 +32,11 @@ export class Wire extends Wiring {
   public isViewWire = true;
 
 
-  static connectNodes(...nodes: Array<Collection | Array<Collection & IndexableStatic> | ParrallelWire>) {
-    let lastEl: Collection | ParrallelWire;
-    nodes.forEach(node => {
-      if (node instanceof Array) {
-        node = new Parrallel(...node);
-      }
-
-      if (lastEl) {
-
-        if (lastEl instanceof ParrallelWire && !(node instanceof ParrallelWire)) {
-          lastEl.newOutC(node.inC);
-        } else if (node instanceof ParrallelWire && !(lastEl instanceof ParrallelWire)) {
-          node.newInC(lastEl.outC);
-        } else if (!(lastEl instanceof ParrallelWire) && !(node instanceof ParrallelWire)) {
-
-          // lastEl.connectedTo = undefined
-          Wire.connect(lastEl.outC, node.inC);
-        }
-      }
-      // node.controlContainer = this
-      // this.nodes.push(node)
-      // this.connectFirst()
-      lastEl = node;
-    });
+  createConnectionLink() {
+    const conLink = new Connection(this, "connectionLink");
+    this.connections.push(conLink)
+    return conLink
   }
-
-
   remove(positive: Connection) {
     this.connections = this.connections.filter(con => con != positive)
   }
@@ -81,22 +62,17 @@ export class Wire extends Wiring {
     return wire;
   }
 
-  /**@deprecated */
-  getTotalResistance(f: Wiring, options: GetResistanceOptions): ResistanceReturn {
-    const other = this.getOtherConnections(f as unknown as Connection)
-
-    return other[0].getTotalResistance(this, options)
-  }
-  /**@deprecated */
-  pushCurrent(options: CurrentOption, from: Wiring): CurrentCurrent {
-    debugger
-    const connection = this.connections[0];
-    return connection.pushCurrent(options, this);
-  }
-
   connect(other: Connection) {
     other.connectedTo = this;
     this.connections.push(other)
+  }
+
+  connectWire(other: Wire) {
+
+    for (const con of other.connections) {
+      this.connect(con)
+    }
+    return this
   }
 
 
@@ -113,25 +89,48 @@ export class Wire extends Wiring {
 
     if (otherConnections.length == 1) {
       otherConnections
-        .forEach(con => con.register({ ...options, from: this }))
+        .forEach(con =>
+          options.next(con, { ...options, from: this }))
     } else {
       const nodes = otherConnections
         .map(con => {
-          const parrallelNodes = []
-          con.register({ ...options, from: this, nodes: parrallelNodes });
+          const parrallelNodes: Array<REgistrationNode> = []
+          options.next(con, {
+            ...options,
+            from: this,
+            nodes: parrallelNodes,
+            callConnections: [...options.callConnections]
+          })
           return parrallelNodes;
         })
 
-      const inversNodes = []
-      inversNodes.reverse()
-      let validNodes: REgistrationNode = nodes.filter(subCon => subCon.length);
-      if (validNodes.length == 1) {
-        validNodes = validNodes[0][0]
+
+
+      if (nodes.some(s => !(s instanceof Array))) {
+        debugger
       }
+      //const inversNodes = []
+      // inversNodes.reverse()
+      let validNodes: REgistrationNode[][] | REgistrationNode = nodes.filter(subCon => subCon.length);
+      if (validNodes.length == 1) {
+        if ("length" in validNodes[0][0]) {
+          debugger
+        }
+
+        if (validNodes[0].length > 1) {
+          //debugger
+        }
+
+        validNodes = validNodes[0][0]
+
+
+
+      }
+
 
       // do uniqueness check
       options.nodes.push(validNodes)
-      options.nodes.push(...inversNodes)
+      //options.nodes.push(...inversNodes)
     }
 
     //return this.outC.register({ ...options, from: this });

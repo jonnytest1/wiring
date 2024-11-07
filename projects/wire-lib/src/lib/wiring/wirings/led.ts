@@ -1,6 +1,7 @@
 
 import type { FromJsonOptions } from '../serialisation';
 import { JsonSerializer } from '../serialisation';
+import type { RegisterOptions } from './interfaces/registration';
 import { noConnection } from './resistance-return';
 import { Resistor } from './resistor';
 import { Voltage } from './units/voltage';
@@ -28,7 +29,13 @@ export class LED extends Resistor {
     }
     return super.getTotalResistance(from, options)
   }
+  override register(options: RegisterOptions): void | false {
+    if (options.from === this.outC) {
+      return false
+    }
 
+    super.register(options)
+  }
 
   override processCurrent(options: ProcessCurrentOptions): ProcessCurrentReturn {
     const returnCurrent = super.processCurrent(options)

@@ -1,8 +1,11 @@
 
+import type { Capacitance } from './capacitance';
 import type { Current } from './current';
 import type { Time } from './time';
+import type { Voltage } from './voltage';
 
 export class Charge {
+
 
     // in Coulomb
     // current * time
@@ -20,12 +23,22 @@ export class Charge {
     add(other: Charge) {
         this._coulomb += other.coulomb
     }
+
+    process(processedCharge: Charge) {
+        this._coulomb = Math.max(this._coulomb - processedCharge.coulomb, 0)
+    }
+
     isZero() {
         return this._coulomb == 0
     }
 
     static from(current: Current, time: Time) {
         return new Charge(current.current * time.seconds)
+    }
+
+    // V=Q/C => Q=V*C
+    static fromVoltage(voltage: Voltage, capacitance: Capacitance) {
+        return new Charge(voltage.voltage * capacitance.farad)
     }
 
 }

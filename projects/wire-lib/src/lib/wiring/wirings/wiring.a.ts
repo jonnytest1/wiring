@@ -1,12 +1,13 @@
 import { v4 } from 'uuid';
 import type { UINode } from '../wiring-ui/ui-node';
-import type { RegisterOptions } from './interfaces/registration';
+import type { PowerSource, RegisterOptions, REgistrationNode } from './interfaces/registration';
 import type { Impedance } from './units/impedance';
-import type { Voltage } from './units/voltage';
+import { Voltage } from './units/voltage';
 import type { Time } from './units/time';
 import type { Current } from './units/current';
-import type { CircuitSolver } from './circuit-solver';
+import type { CircuitSolver } from './computation/circuit-solver';
 import type { Connection } from './connection';
+import type { ComputationMatrix } from './computation/computation-matrix';
 
 
 export interface CurrentCurrent {
@@ -19,11 +20,28 @@ export interface CurrentCurrent {
 
 export interface ProcessCurrentOptions {
   voltage: Voltage,
+  supplyVoltage: Voltage
   current: Current
-  time: Time
+  deltaTime: Time
 
-  totalImpedance: Impedance,
+  triggerTimestamp: number
+
+  //totalImpedance: Impedance,
   fromConnection?: Connection
+
+
+  source: PowerSource
+
+  data: ComputationMatrix
+
+  //voltageChanges: Array<{ from: Wiring | REgistrationNode, voltage: Voltage }>
+  //currentChanges: Array<{ from: Wiring | REgistrationNode, current: Current }>
+
+  nodeshistory: Array<Wiring>
+
+  postProcess: (cb: () => void) => void
+
+  voltageOnlyRun: boolean
 }
 
 
@@ -80,6 +98,12 @@ export interface ResistanceReturn {
   steps: Array<any>
 }
 
+export type IndexableConstructor<T extends string = string> = Function & {
+  typeName: T
+}
+
+
+
 export interface Indexable<T extends string = string> {
   typeName: T
 }
@@ -117,7 +141,16 @@ export abstract class Wiring {
   abstract processCurrent(options: ProcessCurrentOptions): ProcessCurrentReturn;
 
 
-  abstract register(options: RegisterOptions): void;
+  providedVoltage() {
+    return Voltage.ZERO
+  }
+
+
+  setVoltage(con: Connection, voltage: Voltage) {
+
+  }
+
+  abstract register(options: RegisterOptions): void | false;
 
   /* abstract fromRegistration(data) {
  

@@ -1,11 +1,14 @@
-import { Battery } from './battery'
-import { Resistor } from './resistor'
-import { connectParralel } from './test/parralel'
-import { Wire } from './wire'
+import { Battery } from '../battery'
+import { Resistor } from '../resistor'
+import { connectParralel } from '../test/parralel'
+import { Wire } from '../wire'
 import { CircuitSolver } from "./circuit-solver"
-import { Time } from './units/time'
-import { Collection } from './collection'
-import type { REgistrationNode } from './interfaces/registration'
+import { Time } from '../units/time'
+import { Collection } from '../collection'
+import type { REgistrationNode } from '../interfaces/registration'
+
+import { WireLink } from "../wire-link"
+import { Connection } from '../connection'
 describe("circuit-sovler", () => {
 
 
@@ -28,14 +31,24 @@ describe("circuit-sovler", () => {
 
         const resistor_2 = new Resistor(2)
         const resistor_4 = new Resistor(4)
-
-        const [parrallelStart, parrallelEnd] = connectParralel([resistor_2], [resistor_4])
-
         const resistor_5 = new Resistor(5)
 
-        Wire.connectNodes(battery, parrallelStart, parrallelEnd, resistor_5, battery)
+        Wire.connect(battery.outC!, resistor_2.inC!, resistor_4.inC!)
+        Wire.connect(resistor_5.outC!, resistor_2.outC!, resistor_4.outC!)
+        Wire.connect(resistor_5.inC!, battery.inC!)
 
         const solver = new CircuitSolver(battery)
+        solver.recalculate()
+        const laylout = solver.log({ withImp: true })
+        expect(laylout).toEqual([
+            "Battery:0",
+            [
+                { "imp": 2, "p": ["Resistor:2"] },
+                { "imp": 4, "p": ["Resistor:4"] }
+            ],
+            "Resistor:5",
+            "Battery:0"])
+
         solver.check(new Time(0.00001))
         expect(solver.caluclatedImpedanceTotal.impedance.toPrecision(3)).toBe("6.33")
         // expect(+parrallelStart.voltageDrop.toPrecision(3)).toBe(1.26)
@@ -78,16 +91,39 @@ describe("circuit-sovler", () => {
 
         const resistor_10 = new Resistor(10)
         const resistor_10b = new Resistor(10)
-        const innerParrallel = connectParralel([resistor_10], [resistor_10b])
-
-        const innerCol = new Collection(innerParrallel[0].newInC(), innerParrallel[1].newOutC())
-        const [parrallelStart, parrallelEnd] = connectParralel([innerCol], [resistor_4])
-
-
         const resistor_5 = new Resistor(5)
-        Wire.connectNodes(battery, parrallelStart, parrallelEnd, resistor_5, battery)
+
+        const splitLink = Wire.connect(battery.outC!, resistor_4.inC!).createConnectionLink()
+
+        Wire.connect(resistor_10.inC!, resistor_10b.inC!, splitLink)
+
+        const joinLink = Wire.connect(resistor_10.outC!, resistor_10b.outC!).createConnectionLink()
+        Wire.connect(resistor_4.outC!, joinLink, resistor_5.outC!)
+        Wire.connect(resistor_5.inC!, battery.inC!)
 
         const solver = new CircuitSolver(battery)
+        solver.recalculate()
+        const laylout = solver.log({ withImp: true })
+
+
+
+
+        expect(laylout).toEqual([
+            "Battery:0",
+            [
+                { "imp": 4, "p": ["Resistor:4"] },
+                {
+                    "imp": 5, "p": [
+                        [
+                            { "imp": 10, "p": ["Resistor:10"] },
+                            { "imp": 10, "p": ["Resistor:10"] }
+                        ]]
+                }
+            ],
+            "Resistor:5",
+            "Battery:0"])
+
+
         solver.check(new Time(0.00001))
         expect(solver.caluclatedImpedanceTotal.impedance.toPrecision(3)).toBe('7.22')
 

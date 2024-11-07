@@ -1,21 +1,40 @@
 import type { Connection } from '../connection';
-import { Wiring } from '../wiring.a';
+import type { Impedance } from '../units/impedance';
+import type { Voltage } from '../units/voltage';
+import { Wiring, type Indexable } from '../wiring.a';
+export interface PowerSource {
+  source: Wiring;
+  ground: Connection | null;
+  nodes?: Array<REgistrationNode>;
 
+  totalImpedance?: Impedance
 
+  // this is definitely wrong , but it makes it a bit faster
+  maxVoltage?: Voltage
 
+  invalidConfig?: boolean
 
-export type REgistrationNode = {
-  name: string,
-  details?: any,
-  node?: Wiring
-  connection?: Connection
-} | Array<Array<REgistrationNode>>
+  breakOnInvalid: boolean
+}
+
+export type CalcNode = Wiring & { calculationData?: { voltageBefore: Map<Connection, Voltage> } }
+export type RegistrationNodeObject = {
+  name: string;
+  details?: any;
+  node?: CalcNode;
+  connection?: Connection;
+  out?: Connection;
+};
+
+export type REgistrationNode = RegistrationNodeObject | Array<Array<REgistrationNode>>
 
 
 export interface RegisterOptions {
   nodes: Array<REgistrationNode>;
-  until: Wiring;
-  from?: any;
+
+  callConnections: Array<Wiring>
+  until: Connection;
+  from?;
 
   parrallelLevel: number
 
@@ -24,4 +43,11 @@ export interface RegisterOptions {
 
   withSerialise: boolean
   forCalculation: boolean
+
+  source: PowerSource
+
+  add(n: REgistrationNode): void
+
+
+  next(node: Wiring, opts: RegisterOptions): void | false
 }

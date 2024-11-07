@@ -12,4 +12,9 @@ export class Time {
     static timeConstant(impedance: Impedance, capacitance: Capacitance) {
         return new Time(impedance.impedance * capacitance.farad)
     }
+
+
+    step(divider: number) {
+        return new Time(this.seconds / divider)
+    }
 }

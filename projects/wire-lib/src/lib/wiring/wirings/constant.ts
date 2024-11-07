@@ -1,0 +1,1 @@
+export const EULER = 2.7182;

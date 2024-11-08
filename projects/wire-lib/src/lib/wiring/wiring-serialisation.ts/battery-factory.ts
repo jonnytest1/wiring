@@ -1,6 +1,7 @@
 import { JsonSerializer, type FromJsonOptions } from '../serialisation';
 import { Battery } from '../wirings/battery';
 import type { Connection } from '../wirings/connection';
+import { Charge } from '../wirings/units/charge';
 import { SerialisationFactory } from './serialisation-factory';
 
 export class BatteryFactory extends SerialisationFactory<Battery> {
@@ -29,10 +30,15 @@ export class BatteryFactory extends SerialisationFactory<Battery> {
             if (fromJSON.maxAmpere == "Infinity") {
                 fromJSON.maxAmpere = Infinity
             }
+
+            if (fromJSON.chargePercent) {
+                fromJSON.charge = fromJSON.chargePercent * fromJSON.maxAmpere
+            }
+
             const battery = new Battery(fromJSON.voltage, +(fromJSON.charge ?? 0.001));
             battery.enabled = fromJSON.enabled;
             this.refMap[fromJSON.nodeUuid] = battery;
-            battery.maxAmpereSeconds = +(fromJSON.maxAmpere ?? +(fromJSON.charge ?? 0.0001));
+            battery.maxCharge = new Charge(+(fromJSON.maxAmpere ?? +(fromJSON.charge ?? 0.0001)));
             JsonSerializer.createUiRepresation(battery, fromJSON as any, options);
 
             const prov = fromJSON.prov

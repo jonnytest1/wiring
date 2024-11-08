@@ -4,7 +4,6 @@ import { BindingBoolean } from '../../../utils/type-checker';
 import { BoundingBox } from '../../util/bounding-box';
 import { Vector2 } from '../../util/vector';
 import { WiringDataService } from '../../wiring.service';
-import { ParrallelWire } from '../../wirings/parrallel-wire';
 import { Wire } from '../../wirings/wire';
 
 @Component({
@@ -15,16 +14,14 @@ import { Wire } from '../../wirings/wire';
 export class WireUiComponent implements OnInit {
 
   @Input()
-  fromVector: Vector2;
+  positions: Array<Vector2>;
 
-  @Input()
-  toVector: Vector2;
 
   @Input()
   wire: Wire;
 
-  verticalBox: BoundingBox;
-  horizontalBox: BoundingBox;
+  verticalBoxes: Array<BoundingBox>;
+  horizontalBoxes: Array<BoundingBox>;
 
   highlighted = false;
 
@@ -55,18 +52,22 @@ export class WireUiComponent implements OnInit {
   }
 
   calculateWires() {
-    const fromVector = this.fromVector;
-    const fromBox = new BoundingBox(
-      fromVector.added(-this.lineWidth * 2, -this.lineWidth * 2),
-      fromVector.added(this.lineWidth * 2, this.lineWidth * 2)
-    );
 
-    const toVector = this.toVector;
+    let boundingBox = new BoundingBox(Vector2.ZERO, Vector2.ZERO)
 
+    for (let vecI = 0; vecI < this.positions.length; vecI++) {
 
+      for (let vecJ = vecI + 1; vecJ < this.positions.length; vecJ++) {
+        const combinationBox = new BoundingBox(this.positions[vecI], this.positions[vecJ])
 
-    const wireBox = new BoundingBox(fromVector, toVector);
-    const direction = wireBox.diagonal();
+        if (combinationBox.diagonal().length() > boundingBox.diagonal().length()) {
+          boundingBox = combinationBox
+        }
+
+      }
+    }
+
+    const direction = boundingBox.diagonal();
     const isFalling = direction.y > 0;
     const isRight = direction.x > 0;
 
@@ -76,17 +77,17 @@ export class WireUiComponent implements OnInit {
 
     const width = 2;
     if (!isRight) {
-      left = wireBox.getRight();
-      right = wireBox.getLeft();
+      left = boundingBox.getRight();
+      right = boundingBox.getLeft();
     } else {
-      left = wireBox.getLeft();
-      right = wireBox.getRight();
+      left = boundingBox.getLeft();
+      right = boundingBox.getRight();
     }
 
     if (isFalling != isRight) {
-      horizonaly = toVector.y;
+      horizonaly = boundingBox.bottomRight.y;
     } else {
-      horizonaly = fromVector.y;
+      horizonaly = boundingBox.topLeft.y;
     }
     if (isFalling) {
       this.dot = new Vector2(right, horizonaly);
@@ -94,28 +95,60 @@ export class WireUiComponent implements OnInit {
       this.dot = new Vector2(left, horizonaly);
     }
 
-    let fromToDot = this.dot.subtract(fromVector);
+    let fromToDot = this.dot.subtract(boundingBox.topLeft);
     fromToDot = fromToDot.scaleTo(this.lineWidth + this.borderWidth * 2);
-    const fromLine = new BoundingBox(fromVector.added(fromToDot), this.dot)
+    const fromLine = new BoundingBox(boundingBox.topLeft.added(fromToDot), this.dot)
       .toRectangle()
       .withMargin(new Vector2(width, width));
 
 
-    let toVtoDot = this.dot.subtract(toVector);
+    let toVtoDot = this.dot.subtract(boundingBox.bottomRight);
     toVtoDot = toVtoDot.scaleTo(this.lineWidth + this.borderWidth * 2);
 
     const toLine = new BoundingBox(
-      toVector.added(toVtoDot), this.dot
+      boundingBox.bottomRight.added(toVtoDot), this.dot
     )
       .toRectangle()
       .withMargin(new Vector2(width, width));
 
-    this.horizontalBox = toLine;
-    this.verticalBox = fromLine; //
+    this.horizontalBoxes = [toLine];
+    this.verticalBoxes = [fromLine]; //
 
 
+    const remainingConnecitons = this.positions.filter(p => p !== boundingBox.topLeft && p !== boundingBox.bottomRight)
 
+    for (const con of remainingConnecitons) {
 
+      const distanceHorizontal = con.subtract(new Vector2(con.x, this.dot.y))
+      const distanceVertical = con.subtract(new Vector2(this.dot.x, con.y))
+
+      let addVertical = distanceHorizontal.length() < distanceVertical.length()
+
+      if (addVertical) {
+        if (toLine.toRectangle().getRight() < con.x || toLine.toRectangle().getLeft() > con.x) {
+          addVertical = false
+        }
+
+      } else {
+        if (fromLine.toRectangle().getBottom() < con.y || fromLine.toRectangle().getTop() > con.y) {
+          addVertical = true
+        }
+      }
+
+      if (addVertical) {
+        const additinoalBox = new BoundingBox(con, new Vector2(con.x, this.dot.y))
+          .toRectangle()
+          .withMargin(new Vector2(width, width));
+
+        this.verticalBoxes.push(additinoalBox)
+      } else {
+        const additinoalBox = new BoundingBox(con, new Vector2(this.dot.x, con.y))
+          .toRectangle()
+          .withMargin(new Vector2(width, width));
+
+        this.horizontalBoxes.push(additinoalBox)
+      }
+    }
   }
 
   clearTemp() {
@@ -153,7 +186,9 @@ export class WireUiComponent implements OnInit {
     if (this.data.editingWire) {
 
       const previousWire = this.data.editingWire.component.wire;
+      debugger
 
+      /*
       const parrallelWireStart = new ParrallelWire();
       parrallelWireStart.newInC(previousWire.inC);
       parrallelWireStart.newOutC(previousWire.outC);
@@ -163,12 +198,13 @@ export class WireUiComponent implements OnInit {
       const parrallelWireEnd = new ParrallelWire();
       parrallelWireEnd.newInC(currentWire.inC);
       parrallelWireEnd.newOutC(currentWire.outC);
-      parrallelWireStart.newOutC().connectTo(parrallelWireEnd.newInC());
+      parrallelWireStart.newOutC().connectTo(parrallelWireEnd.newInC());*/
     } else if (this.data.dragConnection) {
-      const parrallelWireEnd = new ParrallelWire();
+      debugger
+      /*const parrallelWireEnd = new ParrallelWire();
       parrallelWireEnd.newInC(currentWire.inC);
       parrallelWireEnd.newInC(this.data.dragConnection);
-      parrallelWireEnd.newOutC(currentWire.outC);
+      parrallelWireEnd.newOutC(currentWire.outC);*/
     }
   }
 }

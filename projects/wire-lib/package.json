@@ -15,6 +15,7 @@
     "@types/three": "^0.169.0",
     "cannon-es": "^0.20.0",
     "jspython-interpreter": "^2.1.15",
+    "nerdamer": "^1.1.13",
     "three": "^0.169.0",
     "troika-three-text": "^0.50.2",
     "tslib": "^2.3.0"

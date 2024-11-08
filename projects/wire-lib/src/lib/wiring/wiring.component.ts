@@ -11,9 +11,10 @@ import type { LED } from './wirings/led';
 import type { Resistor } from './wirings/resistor';
 import type { Switch } from './wirings/switch';
 import { Wire } from './wirings/wire';
-import { ParrallelWire } from './wirings/parrallel-wire';
 import { NODE_TEMPLATES } from './node-templates';
 import { createStateMachine } from '../utils/state-machine';
+import { CircuitSolver } from './wirings/computation/circuit-solver';
+import { Time } from './wirings/units/time';
 
 export interface NodeTemplate {
 
@@ -36,6 +37,7 @@ export interface NodeEl {
 export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
 
   batteries: Battery[];
+  solver: CircuitSolver;
 
 
   lastTime: number;
@@ -46,7 +48,7 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
 
   dataStructures: Array<StrucureReturn> = [];
 
-  wirePositions: Array<{ from: Vector2, to: Vector2, wire: Wire }> = [];
+  wirePositions: Array<{ positions: Array<Vector2>, wire: Wire }> = [];
 
   nodeTemplates: Array<NodeTemplate> = NODE_TEMPLATES;
 
@@ -80,6 +82,9 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     public serialize: LocalStorageSerialization) {
 
     this.batteries = [];
+
+
+
     const structureCache = []
 
     const url = new URL(location.href)
@@ -97,6 +102,8 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
       }).then(bats => {
         this.batteries.push(...bats)
 
+        this.solver = new CircuitSolver(...this.batteries)
+
         if (url.searchParams.has("enablebatteries")) {
           bats.forEach(bat => {
             bat.enabled = true
@@ -108,11 +115,10 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     this.interval = setInterval(() => {
       this.cdr.markForCheck();
 
+      // TODO: structures
+      /*this.batteries.forEach((battery, i) => {
 
-      // this.dataStructures.length = this.batteries.length + this.data.tempSerialBlocks.length
-      this.batteries.forEach((battery, i) => {
-
-
+        debugger
         const structreArray = battery.getStructure();
 
         const structCache = JSON.stringify(structreArray);
@@ -122,7 +128,7 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
           structureCache[i] = structCache
         }
 
-      });
+      });*/
 
       const positinons = this.getWirePositions();
       const cachePos = JSON.stringify(positinons.map(pos => ({ ...pos, wire: null })))
@@ -134,6 +140,10 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     }, 100);
 
     this.preloadImages();
+
+    this.data.wireChange.subscribe(() => {
+      this.solver?.invalidate()
+    })
   }
   preloadImages() {
     for (const image of ['assets/icons/relay_right.png', 'assets/icons/pipico.png']) {
@@ -160,18 +170,7 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     this.nodes.forEach(node => {
       const nodeWires = node.uiInstance.getWires();
       nodeWires.forEach(wire => {
-        if (wire instanceof ParrallelWire) {
-          for (const inWire of wire.inC) {
-            for (const outC of wire.outC) {
-              const tWire = new Wire();
-              tWire.inC = inWire;
-              tWire.outC = outC;
-              wires.add(tWire);
-            }
-          }
-        } else {
-          wires.add(wire);
-        }
+        wires.add(wire);
       });
     });
     return wires;
@@ -181,22 +180,23 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     const wireList = this.getWires();
 
     return [...wireList].map(wire => {
-      const connectionParent = wire.inC?.parent;
-      const from = connectionParent?.uiNode?.getInOutComponent(wire.inC?.id)?.getOutVector();
-
-      const toParent = wire.outC?.parent;
-      const to = toParent?.uiNode?.getInOutComponent(wire.outC?.id)?.getInVector();
 
       const scrollOFfset = new Vector2(this.sidenavcontent.nativeElement.scrollLeft, this.sidenavcontent.nativeElement.scrollTop)
+      const positions = wire.connections.map(c => {
+        const connectionParent = c?.parent;
+        const pos = connectionParent?.uiNode?.getInOutComponent(c?.id)?.getVector(c);
+        if (!pos) {
+          return undefined
+        }
+        return pos.added(scrollOFfset)
+      })
+        .filter(v => !!v)
 
-      if (!to || !from) {
-        return undefined;
-      }
       return {
-        from: from.added(scrollOFfset),
-        to: to.added(scrollOFfset),
+        positions: positions,
         wire: wire
-      };
+      }
+
     });
   }
 
@@ -205,7 +205,7 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
   }
 
   getRemainingBattery(bat: Battery) {
-    return bat.ampereSeconds;
+    return bat.remainingCharge.coulomb;
   }
 
   dragMove(event: MouseEvent) {
@@ -239,6 +239,8 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
 
 
 
+
+
   dropped(el: DragEvent, nodeTemplate: NodeTemplate) {
 
     const position = new Vector2({ x: el.x, y: el.y }).dividedBy(10).rounded().multipliedBy(10);
@@ -247,6 +249,8 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     });
     if (newNode.instance instanceof BatteryUiComponent) {
       this.batteries.push(newNode.instance.node);
+
+      this.refreshSolver();
     }
     newNode.instance.setPosition(position);
 
@@ -254,7 +258,16 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
       componentRef: newNode,
       uiInstance: newNode.instance,
     });
+    this.solver.invalidate()
     this.cdr.markForCheck();
+  }
+
+  private refreshSolver() {
+    this.solver = new CircuitSolver(...this.batteries.map(bat => ({
+      source: bat,
+      ground: bat.inC,
+      breakOnInvalid: false
+    })));
   }
 
   ngAfterContentChecked(): void {
@@ -265,7 +278,8 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     }
     const delta = now - this.lastTime;
     this.lastTime = now;
-    this.batteries.forEach(b => b.checkContent(delta / 1000));
+    this.solver?.invalidate()
+    this.solver?.check(new Time(delta / 1000))
   }
 
   ngOnInit() {

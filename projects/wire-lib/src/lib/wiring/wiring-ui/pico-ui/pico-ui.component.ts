@@ -3,7 +3,6 @@ import { UINode } from '../ui-node';
 import { PiPico } from '../../wirings/microprocessor/pipico';
 import { InOutComponent } from '../in-out/in-out.component';
 import { CommonModule } from '@angular/common';
-import type { ParrallelWire } from '../../wirings/parrallel-wire';
 import type { Wire } from '../../wirings/wire';
 import type { Switch } from '../../wirings/switch';
 import { Collection } from '../../wirings/collection';
@@ -43,7 +42,6 @@ export class PicoUiComponent extends UINode<PiPico> {
     super(new PiPico(), injector)
 
 
-
   }
 
 
@@ -52,8 +50,12 @@ export class PicoUiComponent extends UINode<PiPico> {
   override initNodes(): void {
     this.topUiComponets = this.node.topRow.map(pin => new Collection(pin, null))
     this.bottomUiComponents = this.node.bottomRow.map(pin => new Collection(pin, null))
+
+    this.node.gpios.forEach(gpio => {
+      gpio.boundResistor.uiNode = this
+    })
   }
-  override getWires(): Array<Wire | ParrallelWire> {
+  override getWires(): Array<Wire> {
     const wires = [];
 
     for (let i = 0; i < this.node.pinList.length; i++) {
@@ -67,7 +69,7 @@ export class PicoUiComponent extends UINode<PiPico> {
 
 
   override getInOutComponent(id: string) {
-    return this.connectorElements.find(el => el.node.inC.id === id)
+    return this.connectorElements?.find(el => el.node.inC.id === id)
   }
 
   getTextAreaHeight() {

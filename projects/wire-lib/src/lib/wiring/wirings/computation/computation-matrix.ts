@@ -83,12 +83,14 @@ export class ComputationMatrix {
         multiplier: number
     }> = {}
 
-    private sourceMaps = new Map<Wiring, string>()
+    sourceMaps = new Map<Wiring, string>()
 
     constructor(private voltageSources: Array<VoltageSource>) {
         this.usedResistances = new Set()
         const sources = voltageSources.filter(s => s.source.providedVoltage().isPositive())
-
+        if (sources.length === 0) {
+            return
+        }
         let currentExpressions: Array<{ index: string, expr: () => string }> = []
 
         for (let i = 0; i < sources.length; i++) {
@@ -146,7 +148,7 @@ export class ComputationMatrix {
 
         let currentExprStr = currentExpressions.map(e => e.expr());
 
-        const expressions = Object.values(this.impedances)
+        Object.values(this.impedances)
             .filter(e => isFinite(e.impedance.impedance) && this.usedResistances.has(e.index))
             .forEach(e => {
 
@@ -157,38 +159,42 @@ export class ComputationMatrix {
             });
         // DO NOT randonly add expressinos unless neccessary 😅 those increase exponentially
         const equations = [...currentExprStr];
+        try {
 
-        if (equations.length === 1) {
-            // lib behaves differently with only one equation
-            this.solution = {
-                Ia___: +solver(equations[0]).solveFor("Ia___")[0]
-            }
-        } else {
-            for (let i = 0; i < equations.length; i++) {
-
-                let currentExpr = equations[i]
-
-                for (const c of currentExpressions) {
-                    currentExpr = currentExpr.replace(new RegExp(`I${c.index}___`, "g"), "")
+            if (equations.length === 1) {
+                // lib behaves differently with only one equation
+                this.solution = {
+                    Ia___: +solver(equations[0]).solveFor("Ia___")[0]
                 }
-                const stillHasVariable = currentExpr.match(/I(?<name>[_a-z]*?)___/)
-                let name = stillHasVariable?.groups?.["name"];
-                while (name) {
-                    const expr = this.currentExpressions[name]()
-                    equations[i] = equations[i].replace(`I${name}___`, `(${expr.multiplier}*I${expr.currentIndex}___)`)
-                    currentExpr = currentExpr.replace(`I${name}___`, ``)
+            } else {
+                for (let i = 0; i < equations.length; i++) {
 
+                    let currentExpr = equations[i]
 
+                    for (const c of currentExpressions) {
+                        currentExpr = currentExpr.replace(new RegExp(`I${c.index}___`, "g"), "")
+                    }
                     const stillHasVariable = currentExpr.match(/I(?<name>[_a-z]*?)___/)
-                    name = stillHasVariable?.groups?.["name"];
+                    let name = stillHasVariable?.groups?.["name"];
+                    while (name) {
+                        const expr = this.currentExpressions[name]()
+                        equations[i] = equations[i].replace(`I${name}___`, `(${expr.multiplier}*I${expr.currentIndex}___)`)
+                        currentExpr = currentExpr.replace(`I${name}___`, ``)
+
+
+                        const stillHasVariable = currentExpr.match(/I(?<name>[_a-z]*?)___/)
+                        name = stillHasVariable?.groups?.["name"];
+                    }
+                    //currentExprStr[i] = currentExprStr[i].replace(`R${e.index}__`, `${e.impedance.impedance}`)
+
                 }
-                //currentExprStr[i] = currentExprStr[i].replace(`R${e.index}__`, `${e.impedance.impedance}`)
+                this.solution = solver.solveEquations([...equations])
+
+
 
             }
-            this.solution = solver.solveEquations([...equations])
-
-
-
+        } catch (e) {
+            debugger
         }
     }
     getPowerSource(w: Wiring) {

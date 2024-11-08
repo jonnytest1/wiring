@@ -112,7 +112,7 @@ int main() {
 
                             return rt.val(rt.longTypeLiteral, millis);
                         }, "global", "millis", [], rt.longTypeLiteral);
-                        //TODO
+
                     }
                 },
 

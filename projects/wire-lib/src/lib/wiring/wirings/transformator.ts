@@ -18,20 +18,23 @@ export class Transformator extends Resistor {
 
 
 
-  override pushCurrent(options: CurrentOption, from: Wiring): CurrentCurrent {
-    const batteryVoltage = options.voltage / this.turnsRatio;
-    const power = options.current * options.voltage;
-    // const current = power / batteryVoltage;
-    this.providingBattery.voltage = batteryVoltage;
-    this.providingBattery.checkContent(options.deltaSeconds);
-
-    return super.pushCurrent({
-      ...options,
-      current: 0,
-      voltage: 0,
-    }, from);
-  }
-
+  /* override pushCurrent(options: CurrentOption, from: Wiring): CurrentCurrent {
+     const batteryVoltage = options.voltage / this.turnsRatio;
+     const power = options.current * options.voltage;
+     // const current = power / batteryVoltage;
+     this.providingBattery.voltage = batteryVoltage;
+ 
+     debugger
+     // TODO
+     //this.providingBattery.checkContent(options.deltaSeconds);
+ 
+     return super.pushCurrent({
+       ...options,
+       current: 0,
+       voltage: 0,
+     }, from);
+   }
+ */
 
   override applytoJson(json: Record<string, any>): void {
     super.applytoJson(json);

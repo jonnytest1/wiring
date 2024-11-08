@@ -1,7 +1,11 @@
 import { Collection } from '../collection';
 import { Connection } from '../connection';
+import type { RegisterOptions, REgistrationNode } from '../interfaces/registration';
 import { noConnection, noResistance } from '../resistance-return';
-import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ResistanceReturn, Wiring } from '../wiring.a';
+import { Resistor } from '../resistor';
+import { Impedance } from '../units/impedance';
+import type { Voltage } from '../units/voltage';
+import type { CurrentCurrent, CurrentOption, GetResistanceOptions, IndexableConstructor, ProcessCurrentOptions, ProcessCurrentReturn, ResistanceReturn, Wiring } from '../wiring.a';
 import type { Executer } from './code-processor/executer';
 export type PinMode = "OUT" | "IN"
 
@@ -14,6 +18,16 @@ interface ConstructorOpts {
         ground: Array<number>
     }
 
+}
+
+interface PinData {
+    con: Connection;
+    outputValue: number;
+    mode: PinMode | "off";
+    boundResistor?: Resistor;
+
+
+    toggle?: () => void
 }
 
 export abstract class MicroProcessorBase extends Collection {
@@ -29,11 +43,7 @@ export abstract class MicroProcessorBase extends Collection {
     bottomRow: Array<Connection>
 
     pinMap: {
-        [pin: number]: {
-            con: Connection,
-            outputValue: number
-            mode: PinMode | "off"
-        }
+        [pin: number]: PinData
     } = {}
 
 
@@ -48,8 +58,13 @@ export abstract class MicroProcessorBase extends Collection {
     abstract operationResistance: number;
     lastTriggerTimestamp: number;
     restCurrent: CurrentCurrent;
-    voltageDrop: number;
+    voltageDrop: Voltage;
     abstract executer: Executer;
+    registerTimestamp: any;
+    topLevelNodes: REgistrationNode[];
+
+
+    gpios: Array<PinData> = []
 
     constructor(options: ConstructorOpts) {
         super(null, null)
@@ -84,278 +99,260 @@ export abstract class MicroProcessorBase extends Collection {
         this.bottomRow = this.pinList.slice(half)
 
         for (let inputI = 0; inputI < this.topRow.length; inputI++) {
-            const inpt = this.topRow[inputI]
+            const con = this.topRow[inputI]
+            const pinId = this.getTopRowPinId(con, inputI)
+
+            this.registerConnection(con, pinId)
+
             // connectionWire.name = `${40 - inputI}-inputwire-${inpt.name}`
-            inpt.parent = this
-            //connectionWire.outC = this
-            const pinId = this.getTopRowPinId(inpt, inputI)
-            this.pinMap[pinId] = {
-                con: inpt,
-                mode: "off",
-                outputValue: 0
-            }
-            this.reversePinMap.set(inpt, pinId)
+
         }
 
         for (let outputI = 0; outputI < this.bottomRow.length; outputI++) {
-            const output = this.bottomRow[outputI]
+            const con = this.bottomRow[outputI]
+            const pinIndex = this.getBottomRowPinId(con, outputI)
+
+
+            this.registerConnection(con, pinIndex)
             // output.inC.connectedTo = new Wire()
             //  output.inC.connectedTo.inC = this
             //  output.name = `pin-${outputI + 1}`
-            output.parent = this
-            const pinIndex = this.getBottomRowPinId(output, outputI)
-            this.pinMap[pinIndex] = {
-                con: output,
-                "mode": "off",
-                outputValue: 0
-            }
-            this.reversePinMap.set(output, pinIndex)
+
+
+
         }
         for (const pin of this.tagMap.ground) {
             this.pinMap[pin].mode = "OUT"
         }
+    }
+    registerConnection(con: Connection, pinId: number) {
+        con.parent = this
+
+        const pinOptions: PinData = {
+            con: con,
+            mode: "off",
+            outputValue: 0
+
+        };
+
+        if (!this.tagMap.ground.includes(pinId) && !this.tagMap.inputPwr.includes(pinId)) {
+            const boundREsistor = new Resistor(Infinity);
+            con.parent = boundREsistor
+            pinOptions.boundResistor = boundREsistor
+
+            this.gpios.push(pinOptions)
+
+
+            pinOptions.toggle = () => {
+                pinOptions.outputValue = 1 - pinOptions.outputValue
+
+                boundREsistor.resistance = pinOptions.outputValue == 0 ? Infinity : 10
+
+            }
+        }
+        this.pinMap[pinId] = pinOptions
+        this.reversePinMap.set(con, pinId)
     }
 
     getId(con: Connection) {
         return this.reversePinMap.get(con)
     }
 
-    override getTotalResistance(from: Wiring | null, options: GetResistanceOptions): ResistanceReturn {
-        options.addStep(this)
 
-        const fromPin = this.reversePinMap.get(from as Connection)
-        if (this.tagMap.inputPwr.includes(fromPin)) {
-            let parrallelIndex = options.forParrallel;
-
-            parrallelIndex--;
-
-
-            this.resistancetotal = 0
-            let resistanceAfter: Array<ResistanceReturn> | "NaN"
-
-            for (const pinid in this.pinMap) {
-                const pin = this.pinMap[pinid]
-
-                if (pin.mode === "OUT") {
-                    this.selfresolved = false
-                    const connectionResistance = pin.con.getTotalResistance(this, {
-                        ...options,
-                        forParrallel: parrallelIndex + 1
-                    })
-                    if (isNaN(connectionResistance.resistance)) {
-                        continue
-                    }
-
-                    if (this.tagMap.ground.includes(+pinid)) {
-                        if (this.selfresolved == false) {
-                            this.batteryConnection = pin.con
-                        }
-                        continue
-                    }
-
-                    if (connectionResistance.resistance !== 0) {
-                        this.outCResistancePrecentageMap.set(pin.con, 1 / connectionResistance.resistance)
-                        this.resistancetotal += 1 / connectionResistance.resistance;
-                    } else {
-                        this.resistancetotal += Infinity
-                        this.outCResistancePrecentageMap.set(pin.con, Infinity)
-                    }
-                    if (!resistanceAfter && connectionResistance.afterBlock) {
-                        resistanceAfter = connectionResistance.afterBlock
-                    }
-                    if (isNaN(connectionResistance.resistance) && resistanceAfter === undefined) {
-                        resistanceAfter = "NaN"
-                    }
-                }
-
-            }
-
-            // adding default resistance for operation
-            this.resistancetotal += 1 / this.operationResistance
-
-
-
-            if (resistanceAfter == "NaN") {
-                return noConnection(this)
-            }
-            this.resistance = 1 / this.resistancetotal;
-
-            /*resistanceAfter.push({
-              resistance: this.resistance,
-              afterBlock: [],
-              steps: [this]
-            })*/
-
-
-            if (this.resistancetotal == 0) {
-                return {
-                    resistance: 0,
-                    afterBlock: resistanceAfter,
-                    steps: [this]
-                }
-            }
-            if (!resistanceAfter) {
-                if (!this.batteryConnection) {
-                    this.getBatteryConnection(options);
-                }
-                resistanceAfter = [this.batteryConnection.getTotalResistance(this, {
-                    ...options,
-                    forParrallel: parrallelIndex + 1
-                })]
-            }
-            const resistanceAfterEl = resistanceAfter.pop()
-            //return this.resistance + this.outC.getTotalResistance(this, options)
-
-            return {
-                ...resistanceAfter,
-                resistance: resistanceAfterEl.resistance + this.resistance,
-                afterBlock: resistanceAfter,
-                steps: [this]
-            }
-        } else if (this.tagMap.ground.includes(fromPin)) {
-            this.selfresolved = true
-
-            if (this.batteryConnection) {
-                const resistanceRet = this.batteryConnection.getTotalResistance(this, {
-                    ...options,
-                });
-
-                /*resistanceAfter.push({
-                  resistance: this.resistance,
-                  afterBlock: [],
-                  steps: [this]
-                })*/
-
-                return {
-                    ...noResistance(this),
-                    afterBlock: [resistanceRet, ...resistanceRet.afterBlock]
-                }
-            }
-            return noResistance(this)
-        }
-
-
-
-        return noConnection(this)
-
+    override getImpedance(): Impedance {
+        return new Impedance(this.operationResistance)
     }
 
 
-    protected getBatteryConnection(options: GetResistanceOptions) {
-        for (const pinid in this.pinMap) {
-            const pin = this.pinMap[pinid];
-
-            if (pin.mode === "OUT") {
-
-                this.selfresolved = false
-                const connectionResistance = pin.con.getTotalResistance(this, {
-                    ...options,
-                    forParrallel: options.forParrallel - 1
-                })
-                if (isNaN(connectionResistance.resistance)) {
-                    continue
-                }
-
-                if (this.tagMap.ground.includes(+pinid)) {
-                    if (this.selfresolved == false) {
-                        this.batteryConnection = pin.con
-                        return
-                    }
-                }
-            }
-        }
-    }
-
-
-    override pushCurrent(options: CurrentOption, from: Wiring): CurrentCurrent {
-        const fromPin = this.reversePinMap.get(from as Connection)
-
-
+    override processCurrent(options: ProcessCurrentOptions): ProcessCurrentReturn {
+        const fromPin = this.reversePinMap.get(options.fromConnection)
         if (this.tagMap.ground.includes(fromPin)) {
-            if (!this.lastTriggerTimestamp || this.lastTriggerTimestamp !== options.triggerTimestamp) {
-                this.lastTriggerTimestamp = options.triggerTimestamp
-                if (!this.batteryConnection) {
-                    this.getBatteryConnection({
-                        forParrallel: 1, addStep() { },
-                        checkTime: Date.now()
-                    })
-                }
-                if (!this.batteryConnection) {
-
-                    throw new Error("didnt find power supply durion resistance calculation")
-                }
-                this.restCurrent = this.batteryConnection.pushCurrent({
-                    ...options
-                    , current: options.currentAfterBlock,
-                    voltage: options.voltageAfterBlock
-                }, this);
-                this.restCurrent = {
-                    ...this.restCurrent,
-                    afterBlockCurrent: [...this.restCurrent.afterBlockCurrent, this.restCurrent]
-
-                }
-            }
-            return this.restCurrent
+            debugger
         }
-
-
-
-        this.voltageDrop = (options.current * this.resistance)
-
-        if (this.voltageDrop == 0 && this.executer.running) {
+        this.voltageDrop = options.voltageDrop
+        if (!this.voltageDrop.isPositive() && this.executer.running) {
             this.executer.kill()
-        } else if (!this.executer.running && this.voltageDrop > 0) {
+        } else if (!this.executer.running && this.voltageDrop.isPositive()) {
             this.executer.start()
         }
 
-        const rstCurrent = Object.keys(this.pinMap)
-            .filter(pinid => !this.tagMap.ground.includes(+pinid))
-            .filter(pinid => this.pinMap[pinid].mode === "OUT")
-            .map(pinid => {
-                const container = this.pinMap[+pinid].con
-                const voltage = options.voltage
-                const percentage = this.outCResistancePrecentageMap.get(container)
-                let current;
-                if (isFinite(this.resistancetotal)) {
-                    current = options.current * (percentage)
-                } else if (isFinite(percentage)) {
-                    current = 0
-                } else {
-                    current = options.current
-                }
-                if (this.pinMap[+pinid].mode === "OUT") {
-                    let pushVoltage = voltage;
-                    let pushCurrent = current;
-                    if (this.pinMap[+pinid].outputValue == 0) {
-                        pushVoltage = 0
-                        pushCurrent = 0
-                    }
-
-                    // const connectionCurrent = this.
-                    return container.pushCurrent({
-                        ...options,
-                        current: pushCurrent,
-                        voltage: pushVoltage,
-                        currentAfterBlock: options.current,
-                        voltageAfterBlock: voltage - this.voltageDrop
-                    }, this);
-                }
-            }).reduce((col, cur) => {
-                if (cur?.afterBlockCurrent) {
-                    return cur.afterBlockCurrent.pop()
-                }
-                return col
-            }, null)
-
-
-        // in case its not completely connected
-        if (rstCurrent == null) {
-            return null
-        }
-        return {
-            ...rstCurrent,
-            voltage: rstCurrent.voltage
-        };
+        return options
     }
 
+
+    override register(options: RegisterOptions) {
+
+        if (this.registerTimestamp === options.registrationTimestamp) {
+
+            return
+        }
+        const fromPin = this.reversePinMap.get(options.from)
+
+
+        const instance: REgistrationNode = { name: (this.constructor as IndexableConstructor).typeName };
+        if (options.forCalculation) {
+            instance.node = this
+            instance.connection = options.from
+        }
+
+
+        this.registerTimestamp = options.registrationTimestamp;
+
+
+        const subNodes: Array<Array<REgistrationNode>> = [[instance]]
+        this.topLevelNodes = options.nodes;
+        this.topLevelNodes.push(subNodes)
+
+        const groundNodes: Array<{
+            connection: Connection,
+            pinid: number
+            nodes: Array<REgistrationNode>
+        }> = []
+
+
+        Object.keys(this.pinMap)
+            // .filter(pinid => !this.tagMap.ground.includes(+pinid))
+            .filter(pinid => this.pinMap[pinid].mode === "OUT")
+            .forEach(pinid => {
+                const pinData = this.pinMap[+pinid];
+                const container = pinData.con
+                //if (container != this.batteryConnection) {
+
+
+
+                const outputSubNodes: Array<REgistrationNode> = []
+
+                if (this.tagMap.ground.includes(+pinid)) {
+                    groundNodes.push({
+                        pinid: + pinid,
+                        connection: container,
+                        nodes: outputSubNodes
+                    })
+                    container.register({ ...options, from: this, nodes: outputSubNodes })
+                } else {
+                    subNodes.push(outputSubNodes)
+
+
+                    pinData.boundResistor.register({
+                        ...options, from: container, nodes: outputSubNodes,
+                        add(w) {
+                            outputSubNodes.push(w)
+                        }
+                    })
+                    container.register({
+                        ...options, from: pinData.boundResistor, nodes: outputSubNodes,
+                        add(w) {
+                            outputSubNodes.push(w)
+                        }
+                    })
+                }
+
+
+                //debugger
+                //}
+            })
+
+
+        const grouindWithItems = groundNodes.filter(el => el.nodes.length)
+
+        if (grouindWithItems.length === 1) {
+            this.batteryConnection = grouindWithItems[0].connection
+
+            this.topLevelNodes.push(...grouindWithItems[0].nodes)
+        } else {
+            debugger
+        }
+    }
+
+    /* override pushCurrent(options: CurrentOption, from: Wiring): CurrentCurrent {
+         const fromPin = this.reversePinMap.get(from as Connection)
+ 
+ 
+         if (this.tagMap.ground.includes(fromPin)) {
+             if (!this.lastTriggerTimestamp || this.lastTriggerTimestamp !== options.triggerTimestamp) {
+                 this.lastTriggerTimestamp = options.triggerTimestamp
+                 if (!this.batteryConnection) {
+                     this.getBatteryConnection({
+                         forParrallel: 1, addStep() { },
+                         checkTime: Date.now()
+                     })
+                 }
+                 if (!this.batteryConnection) {
+ 
+                     throw new Error("didnt find power supply durion resistance calculation")
+                 }
+                 this.restCurrent = this.batteryConnection.pushCurrent({
+                     ...options
+                     , current: options.currentAfterBlock,
+                     voltage: options.voltageAfterBlock
+                 }, this);
+                 this.restCurrent = {
+                     ...this.restCurrent,
+                     afterBlockCurrent: [...this.restCurrent.afterBlockCurrent, this.restCurrent]
+ 
+                 }
+             }
+             return this.restCurrent
+         }
+ 
+ 
+ 
+         this.voltageDrop = (options.current * this.resistance)
+ 
+         if (this.voltageDrop == 0 && this.executer.running) {
+             this.executer.kill()
+         } else if (!this.executer.running && this.voltageDrop > 0) {
+             this.executer.start()
+         }
+ 
+         const rstCurrent = Object.keys(this.pinMap)
+             .filter(pinid => !this.tagMap.ground.includes(+pinid))
+             .filter(pinid => this.pinMap[pinid].mode === "OUT")
+             .map(pinid => {
+                 const container = this.pinMap[+pinid].con
+                 const voltage = options.voltage
+                 const percentage = this.outCResistancePrecentageMap.get(container)
+                 let current;
+                 if (isFinite(this.resistancetotal)) {
+                     current = options.current * (percentage)
+                 } else if (isFinite(percentage)) {
+                     current = 0
+                 } else {
+                     current = options.current
+                 }
+                 if (this.pinMap[+pinid].mode === "OUT") {
+                     let pushVoltage = voltage;
+                     let pushCurrent = current;
+                     if (this.pinMap[+pinid].outputValue == 0) {
+                         pushVoltage = 0
+                         pushCurrent = 0
+                     }
+ 
+                     // const connectionCurrent = this.
+                     return container.pushCurrent({
+                         ...options,
+                         current: pushCurrent,
+                         voltage: pushVoltage,
+                         currentAfterBlock: options.current,
+                         voltageAfterBlock: voltage - this.voltageDrop
+                     }, this);
+                 }
+             }).reduce((col, cur) => {
+                 if (cur?.afterBlockCurrent) {
+                     return cur.afterBlockCurrent.pop()
+                 }
+                 return col
+             }, null)
+ 
+ 
+         // in case its not completely connected
+         if (rstCurrent == null) {
+             return null
+         }
+         return {
+             ...rstCurrent,
+             voltage: rstCurrent.voltage
+         };
+     }
+ */
 }

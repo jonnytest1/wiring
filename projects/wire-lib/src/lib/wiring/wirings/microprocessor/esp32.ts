@@ -68,12 +68,13 @@ export class Esp32 extends MicroProcessorBase {
         this.jsonStringifyTs = getJsonStringifyTime()
         const con = {}
         if (!this.batteryConnection) {
-            this.getBatteryConnection({
-                addStep(w) {
-
-                },
-                checkTime: Date.now()
-            })
+            debugger
+            /* this.getBatteryConnection({
+                 addStep(w) {
+ 
+                 },
+                 checkTime: Date.now()
+             })*/
         }
 
         Object.keys(this.pinMap)

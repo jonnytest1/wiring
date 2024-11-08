@@ -5,6 +5,7 @@ import { Battery } from '../../wirings/battery';
 import { Collection } from '../../wirings/collection';
 import type { Connection } from '../../wirings/connection';
 import { UINode } from '../ui-node';
+import { Charge } from '../../wirings/units/charge';
 
 @Component({
   selector: 'app-battery-ui',
@@ -36,7 +37,7 @@ export class BatteryUiComponent extends UINode<Battery> {
   }
 
   getChargedPercent() {
-    return +(this.node.ampereSeconds * 100 / this.node.maxAmpereSeconds).toPrecision(5);
+    return +this.node.getChargePercentage().toPrecision(5) * 100
   }
 
   ngOnInit() {
@@ -44,12 +45,12 @@ export class BatteryUiComponent extends UINode<Battery> {
   }
 
   refill() {
-    this.node.ampereSeconds = this.node.maxAmpereSeconds;
+    this.node.remainingCharge = this.node.maxCharge.copy();
   }
 
 
   updateMaxAmpere(val) {
-    this.node.maxAmpereSeconds = +val * 3600
+    this.node.maxCharge = new Charge(+val * 3600)
     this.refill()
   }
 

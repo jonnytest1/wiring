@@ -1,6 +1,7 @@
 import type { FromJsonOptions } from '../serialisation';
 import { Connection } from './connection';
 import { Switch } from './switch';
+import type { Impedance } from './units/impedance';
 import type { Wire } from './wire';
 import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ResistanceReturn, Wiring } from './wiring.a';
 
@@ -11,15 +12,17 @@ export class ToggleSwitch extends Switch {
 
   override negatedOutC = new Connection(this, "switch_out_negated")
 
-
-  override getTotalResistance(from: any, options: GetResistanceOptions): ResistanceReturn {
+  override getImpedance(): Impedance {
     if (this.enabled) {
-      return super.getTotalResistance(from, options)
+      return super.getImpedance()
     } else {
-      return this.negatedOutC.getTotalResistance(this, options)
+      debugger
+      //return this.negatedOutC.getTotalResistance(this, options)
     }
   }
-  override pushCurrent(options: CurrentOption, from: Wiring): CurrentCurrent {
+
+
+  /*override pushCurrent(options: CurrentOption, from: Wiring): CurrentCurrent {
     let superCurrent = super.pushCurrent({
       ...options,
       current: this.enabled ? options.current : 0
@@ -36,7 +39,7 @@ export class ToggleSwitch extends Switch {
       return negatedCurrent
     }
 
-  }
+  }*/
   override applytoJson(json: Record<string, any>): void {
     super.applytoJson(json)
     json['negatedOutC'] = this.negatedOutC.connectedTo

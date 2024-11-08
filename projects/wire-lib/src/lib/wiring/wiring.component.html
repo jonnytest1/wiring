@@ -42,8 +42,8 @@
     <p class="batterydisplay">
       <span *ngFor="let bat of batteries">
         battery capacity {{getRemainingBattery(bat)}} <br>
-        drain at {{bat.currentCurrent_ampere||'0'}}A <br>
-        duraiton : {{ bat.getProjectedDurationMinutes() }} seconds <br>
+        drain at {{bat.currentCurrent?.current}}A <br>
+        duraiton : {{ bat.getProjectedDuration().seconds }} seconds <br>
 
       </span>
     </p>
@@ -77,20 +77,22 @@
       <app-wire-ui class="tempWire"
                    *ngIf="data.currentWire ; let wire"
                    [below]="true"
-                   [fromVector]="wire.from"
-                   [toVector]="wire.to">
+                   [positions]="[wire.from,wire.to]">
       </app-wire-ui>
       <app-wire-ui class="tempWire"
                    [below]="true"
                    *ngIf="data.editingWire ; let wire"
-                   [fromVector]="wire.position"
-                   [toVector]="wire.toPosition">
+                   [positions]="[wire.position,wire.toPosition]">
+      </app-wire-ui>
+
+      <app-wire-ui *ngIf="this.wirePositions[1]"
+                   [wire]="this.wirePositions[1].wire"
+                   [positions]="this.wirePositions[1].positions">
       </app-wire-ui>
       <ng-container *ngFor="let wire of this.wirePositions">
         <app-wire-ui *ngIf="wire"
                      [wire]="wire.wire"
-                     [fromVector]="wire.from"
-                     [toVector]="wire.to">
+                     [positions]="wire.positions">
         </app-wire-ui>
       </ng-container>
     </div>

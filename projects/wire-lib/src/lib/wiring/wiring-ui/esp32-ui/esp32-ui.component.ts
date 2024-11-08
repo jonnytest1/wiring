@@ -5,7 +5,6 @@ import { Collection } from '../../wirings/collection';
 import { InOutComponent } from '../in-out/in-out.component';
 import { CommonModule } from '@angular/common';
 import type { Wire } from '../../wirings/wire';
-import type { ParrallelWire } from '../../wirings/parrallel-wire';
 import { esp32LibraryToken } from '../../tokens';
 
 @Component({
@@ -51,7 +50,7 @@ export class Esp32UiComponent extends UINode<Esp32> {
   }
 
 
-  override getWires(): Array<Wire | ParrallelWire> {
+  override getWires(): Array<Wire> {
     const wires = [];
 
     for (let i = 0; i < this.node.pinList.length; i++) {

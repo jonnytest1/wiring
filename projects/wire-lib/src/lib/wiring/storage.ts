@@ -5,8 +5,6 @@ import { ExamplePickerComponent } from './example-wires/example-picker/example-p
 import { NODE_TEMPLATES } from './node-templates';
 import { wiringJsonStringify, type FromJson, type FromJsonOptions } from './serialisation';
 import { Battery } from './wirings/battery';
-import { ParrallelWire } from './wirings/parrallel-wire';
-import { ToggleSwitch } from './wirings/toggle-switch';
 import { Wire } from './wirings/wire';
 import { serialize, startSerialize } from './wiring-serialisation.ts/main-serialisation';
 

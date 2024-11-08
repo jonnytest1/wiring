@@ -1,14 +1,9 @@
 
 import type { JsonContext } from '../../utils/json-stringify-iterator';
-import type { FromJsonOptions } from '../serialisation';
-import { Collection } from './collection';
 import { Connection } from './connection';
 import type { RegisterOptions, REgistrationNode } from './interfaces/registration';
-import { Parrallel } from './parrallel';
-import { ParrallelWire } from './parrallel-wire';
-import { noConnection } from './resistance-return';
 import type { Impedance } from './units/impedance';
-import { CurrentCurrent, CurrentOption, GetResistanceOptions, Indexable, IndexableStatic, ResistanceReturn, Wiring, type ProcessCurrentOptions, type ProcessCurrentReturn } from './wiring.a';
+import { Wiring, type ProcessCurrentOptions, type ProcessCurrentReturn } from './wiring.a';
 
 export class Wire extends Wiring {
 

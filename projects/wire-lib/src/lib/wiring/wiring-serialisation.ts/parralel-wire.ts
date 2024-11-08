@@ -1,47 +1,54 @@
 import type { FromJsonOptions } from '../serialisation';
-import { ParrallelWire } from '../wirings/parrallel-wire';
 import { Wire } from '../wirings/wire';
 import { SerialisationFactory, type SerialisationReturn } from './serialisation-factory';
 
-export class ParralelWireSerialsiation extends SerialisationFactory<ParrallelWire> {
+export class ParralelWireSerialsiation extends SerialisationFactory<Wire, 4> {
 
-    override factory = ParrallelWire;
-    override fromJSON(json: any, context: FromJsonOptions): SerialisationReturn<ParrallelWire> {
-        const wire = new ParrallelWire()
-        wire.instance = json.uuid
-        wire.newInC(context.inC)
+    override factory = Wire;
+
+    typeName = "ParrallelWire"
 
 
-        let returnWire: Wire | ParrallelWire = null
+    private wireMap: Record<string, Wire> = {}
 
-        if (context.controllerRefs[json.uuid]) {
-            context.controlRefs[json.uuid] ??= []
-            context.controlRefs[json.uuid].push(wire)
+    override fromJSON(json: any, context: FromJsonOptions): SerialisationReturn<Wire> {
+
+        if (this.wireMap[json.uuid]) {
+            this.wireMap[json.uuid].connect(context.inC)
+
         } else {
-            context.controllerRefs[json.uuid] = wire
+            const wire = new Wire()
+            //wire.instance = json.uuid
+            wire.connect(context.inC)
+            this.wireMap[json.uuid] = wire
         }
-
+        let returnWire: Wire
         for (const out of json.outC) {
 
             if (out == "BatteryRef") {
-                returnWire = wire;
+                returnWire = this.wireMap[json.uuid];
                 continue
             }
-            const connected = context.loadElement(out, { ...context, wire: wire })
+            const connected = context.loadElement(out, { ...context, wire: this.wireMap[json.uuid] })
             if (!returnWire) {
                 returnWire = connected.wire
+            } else if (returnWire !== connected.wire) {
+                // cause we throwin away the other connections right now
+                debugger
             }
+
         }
         if (!returnWire) {
-            const tWire = new Wire()
-            tWire.connect(wire.newOutC())
-            return {
-                node: wire,
-                wire: tWire
-            }
+            debugger
+            /* const tWire = new Wire()
+             tWire.connect(this.wireMap[json.uuid])
+             return {
+                 node: tWire,
+                 wire: tWire
+             }*/
         }
         return {
-            node: wire,
+            node: this.wireMap[json.uuid],
             wire: returnWire
         }
     }

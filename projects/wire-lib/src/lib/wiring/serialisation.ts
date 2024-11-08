@@ -4,7 +4,6 @@ import type { NodeEl, NodeTemplate } from './wiring.component';
 import type { Battery } from './wirings/battery';
 import type { Collection } from './wirings/collection';
 import type { Connection } from './wirings/connection';
-import type { ParrallelWire } from './wirings/parrallel-wire';
 import type { Wire } from './wirings/wire';
 import type { IndexableStatic, Wiring } from './wirings/wiring.a';
 import { iterateJsonStringify } from '../utils/json-stringify-iterator';
@@ -20,11 +19,13 @@ export interface ControllerRef {
 type keys = "abc" | "def"
 export interface FromJsonOptions {
   inC?: Connection,
-  wire?: Wire | ParrallelWire
+  wire?: Wire
   displayNodes?: NodeEl[],
   viewRef?: () => ViewContainerRef | null,
   injectorFactory?: (pos: Vector2) => Injector
-
+  /**
+   * cache list i think
+   */
   controlRefs: Record<string, Array<Wiring>>
   controllerRefs: Record<string, ControllerRef>
 

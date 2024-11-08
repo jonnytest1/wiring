@@ -4,6 +4,7 @@ import { JsonSerializer } from '../serialisation';
 import type { RegisterOptions } from './interfaces/registration';
 import { noConnection } from './resistance-return';
 import { Resistor } from './resistor';
+import { Impedance } from './units/impedance';
 import { Voltage } from './units/voltage';
 import type { Wire } from './wire';
 import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ProcessCurrentOptions, ProcessCurrentReturn, ResistanceReturn, Wiring } from './wiring.a';
@@ -23,12 +24,19 @@ export class LED extends Resistor {
     super(5)
   }
 
-  override getTotalResistance(from: any, options: GetResistanceOptions): ResistanceReturn {
+  override getImpedance(): Impedance {
     if (this.blown) {
-      return noConnection(this)
+      return Impedance.BLOCKED
     }
-    return super.getTotalResistance(from, options)
+    return super.getImpedance()
   }
+
+  /* override getTotalResistance(from: any, options: GetResistanceOptions): ResistanceReturn {
+     if (this.blown) {
+       return noConnection(this)
+     }
+     return super.getTotalResistance(from, options)
+   }*/
   override register(options: RegisterOptions): void | false {
     if (options.from === this.outC) {
       return false
@@ -53,19 +61,19 @@ export class LED extends Resistor {
     return returnCurrent
   }
   /**@deprecated */
-  override pushCurrent(options: CurrentOption, from: Wiring): CurrentCurrent {
-    const returnCurrent = super.pushCurrent(options, from)
-    if (options.current > 0) {
-      if (this.voltageDrop > this.maxVoltageDrop) {
-        this.blown = true;
-        this.solver.recalculate()
-        return
-      }
-      this.brightness = this.voltageDrop * 100 / this.maxVoltageDrop
-    } else {
-      this.brightness = 0
-    }
-
-    return returnCurrent
-  }
+  /* override pushCurrent(options: CurrentOption, from: Wiring): CurrentCurrent {
+     const returnCurrent = super.pushCurrent(options, from)
+     if (options.current > 0) {
+       if (this.voltageDrop > this.maxVoltageDrop) {
+         this.blown = true;
+         this.solver.recalculate()
+         return
+       }
+       this.brightness = this.voltageDrop * 100 / this.maxVoltageDrop
+     } else {
+       this.brightness = 0
+     }
+ 
+     return returnCurrent
+   }*/
 }

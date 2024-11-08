@@ -36,7 +36,8 @@ export class CircuitSolver {
     computed: ComputationMatrix;
     constructor(...powerSources: Array<Battery | Capacitor | {
         source: Wiring,
-        ground: Connection
+        ground: Connection,
+        breakOnInvalid?: boolean
     }>) {
         let needsGround = false;
         this.powerSources = powerSources.map(s => {
@@ -56,8 +57,10 @@ export class CircuitSolver {
 
                 }
             }
-
-            return { breakOnInvalid: true, ...s, };
+            if (!this.ground && s.ground) {
+                this.ground = s.ground
+            }
+            return { breakOnInvalid: s.breakOnInvalid ?? true, ...s, };
         })
 
 
@@ -199,23 +202,35 @@ export class CircuitSolver {
 
                 if (options.voltageOnlyRun) {
                     if (node.connection) {
-                        const connectionData = this.computed.data.get(node.connection)
-                        if (!connectionData) {
-                            debugger;
+                        if (this.computed.sourceMaps.has(options.source.source)) {
+                            const connectionData = this.computed.data.get(node.connection)
+                            if (!connectionData) {
+                                debugger;
+                            }
+                            const v = connectionData.voltageDrop()
+                            node.node.setVoltage(node.connection, v)
+                        } else {
+                            node.node.setVoltage(node.connection, Voltage.ZERO)
                         }
-                        const v = connectionData.voltageDrop()
-                        node.node.setVoltage(node.connection, v)
                     }
                 } else {
                     if (node.connection) {
-                        const connectionData = this.computed.data.get(node.connection)
-                        if (!connectionData) {
-                            debugger;
-                        }
-                        options = {
-                            ...options,
-                            current: connectionData.current(),
-                            voltageDrop: connectionData.voltageDrop()
+                        if (this.computed.sourceMaps.has(options.source.source)) {
+                            const connectionData = this.computed.data.get(node.connection)
+                            if (!connectionData) {
+                                debugger;
+                            }
+                            options = {
+                                ...options,
+                                current: connectionData.current(),
+                                voltageDrop: connectionData.voltageDrop()
+                            }
+                        } else {
+                            options = {
+                                ...options,
+                                current: Current.ZERO(),
+                                voltageDrop: Voltage.ZERO
+                            }
                         }
 
 
@@ -261,17 +276,21 @@ export class CircuitSolver {
             this.mergeArrays(nodes, {
                 arrayMergeIds
             })
-
+            source.invalidConfig = false
+            if (nodes.length <= 1) {
+                source.invalidConfig = true
+            }
 
             const ground = nodes.at(-1);
             if (!(ground instanceof Array)) {
                 if (ground.node !== this.ground.parent) {
                     source.invalidConfig = true
 
-                    if (source.breakOnInvalid) {
-                        debugger
-                    }
+
                 }
+            }
+            if (source.invalidConfig && source.breakOnInvalid) {
+                debugger
             }
             source.nodes = nodes
         }

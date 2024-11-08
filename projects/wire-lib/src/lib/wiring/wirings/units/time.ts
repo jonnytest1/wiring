@@ -1,8 +1,10 @@
 import type { Capacitance } from './capacitance';
+import type { Charge } from './charge';
 import type { Current } from './current';
 import type { Impedance } from './impedance';
 
 export class Time {
+
     // in seconds
 
     constructor(private _seconds: number) {
@@ -21,6 +23,11 @@ export class Time {
         return new Time(impedance.impedance * capacitance.farad)
     }
 
+
+    // charge: Ah/A = h
+    static fromDischargeRate(remainingCharge: Charge, currentCurrent: Current) {
+        return new Time(remainingCharge.coulomb / currentCurrent.current)
+    }
     difference(other: Time) {
         return this.seconds - other.seconds
     }

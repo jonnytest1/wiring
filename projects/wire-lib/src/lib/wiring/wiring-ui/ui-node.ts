@@ -7,7 +7,6 @@ import type { Wire } from '../wirings/wire';
 import { InOutComponent } from './in-out/in-out.component';
 import type { MatSnackBarRef } from '@angular/material/snack-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import type { ParrallelWire } from '../wirings/parrallel-wire';
 import { ActivatedRoute, Router } from '@angular/router';
 import { interval, takeUntil, takeWhile, timer } from 'rxjs';
 import type { WireQueryParams } from '../wire-query-params';
@@ -93,12 +92,12 @@ export abstract class UINode<T extends Collection = Collection> extends TypedEve
     })
   }
 
-  getWires(): Array<Wire | ParrallelWire> {
+  getWires(): Array<Wire> {
     return this.getWiresforNode(this.node);
   }
 
   getWiresforNode(col: Collection) {
-    const wires: Array<Wire | ParrallelWire> = [];
+    const wires: Array<Wire> = [];
     if (col?.inC?.connectedTo) {
       wires.push(col?.inC?.connectedTo);
     }

@@ -1,6 +1,5 @@
 import type { OnInit } from '@angular/core';
 import { Component, Injector } from '@angular/core';
-import type { ParrallelWire } from '../../wirings/parrallel-wire';
 import { Transformator } from '../../wirings/transformator';
 import type { Wire } from '../../wirings/wire';
 import { UINode } from '../ui-node';
@@ -73,7 +72,7 @@ export class TransformatorUiComponent extends UINode<Transformator> implements O
   }
 
 
-  override getWires(): Array<Wire | ParrallelWire> {
+  override getWires(): Array<Wire> {
     return [...super.getWires(), ... this.getWiresforNode(this.node.providingBattery)];
   }
 }

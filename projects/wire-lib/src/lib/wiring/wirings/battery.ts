@@ -8,6 +8,7 @@ import { Impedance } from './units/impedance';
 import { Voltage } from './units/voltage';
 import { Current } from './units/current';
 import { Charge } from './units/charge';
+import { Time } from './units/time';
 
 export class Battery extends Collection {
 
@@ -19,8 +20,8 @@ export class Battery extends Collection {
     super(null, null);
     this.outC = new Connection(this, 'bat_prov');
     this.inC = new Connection(this, 'bat_cons');
-    this.ampereSeconds = ampereHours * 60 * 60;
-    this.maxAmpereSeconds = this.ampereSeconds;
+    this.remainingCharge = new Charge(ampereHours * 60 * 60);
+    this.maxCharge = this.remainingCharge.copy();
 
     // this.controlContainer = new SerialConnected()
 
@@ -28,21 +29,26 @@ export class Battery extends Collection {
   }
 
 
-  ampereSeconds: number;
+  remainingCharge: Charge;
 
   networkResistance = Impedance.ZERO;
 
   iterationTime: number;
 
-  currentCurrent_ampere: number;
+  currentCurrent: Current;
 
 
-  maxAmpereSeconds: number;
+  maxCharge: Charge;
 
   enabled = false;
 
 
   override providedVoltage(): Voltage {
+    if (!this.enabled) {
+      return Voltage.ZERO;
+    }
+
+
     return new Voltage(this.voltage);
   }
   override getImpedance(): Impedance {
@@ -57,12 +63,13 @@ export class Battery extends Collection {
       console.warn("battery not enabled")
       this.networkResistance = new Impedance(NaN);
     }
-    if (isNaN(this.networkResistance.impedance) || this.ampereSeconds == 0) {
+    if (isNaN(this.networkResistance.impedance) || this.remainingCharge.coulomb == 0) {
       return options
     }
 
     const batteryVoltage = new Voltage(this.voltage);
-    const current = options.data.getCurrent(this)
+    this.currentCurrent = options.data.getCurrent(this)
+
     try {
       return {
         ...options,
@@ -70,15 +77,19 @@ export class Battery extends Collection {
         //current: current
       }
     } finally {
-      const processedCharge = Charge.from(current, options.deltaTime);
-      this.currentCurrent_ampere = Math.max(this.currentCurrent_ampere - processedCharge.coulomb, 0)
+      const processedCharge = Charge.from(this.currentCurrent, options.deltaTime);
+      this.remainingCharge.process(processedCharge)
     }
   }
 
-  public getProjectedDurationMinutes(): number {
-    const remainingAmpereSeconds = this.ampereSeconds * 60 * 60;
-    const remainingSeconds = remainingAmpereSeconds / this.currentCurrent_ampere;
-    return remainingSeconds / (60 * 60);
+  getChargePercentage() {
+    return this.remainingCharge.coulomb / this.maxCharge.coulomb
+  }
+
+
+
+  public getProjectedDuration(): Time {
+    return Time.fromDischargeRate(this.remainingCharge, this.currentCurrent ?? Current.ZERO())
   }
 
 
@@ -98,8 +109,8 @@ export class Battery extends Collection {
         enabled: this.enabled,
         voltage: this.voltage,
         ui: this.uiNode,
-        charge: this.ampereSeconds === Infinity ? "Infinity" : this.ampereSeconds / (60 * 60),
-        maxAmpere: this.maxAmpereSeconds === Infinity ? "Infinity" : this.maxAmpereSeconds
+        chargePercent: this.remainingCharge.isFinite() ? this.getChargePercentage() : "Infinity",
+        maxAmpere: this.maxCharge.isFinite() ? this.maxCharge.coulomb : "Infinity"
       }
     }
 
@@ -141,8 +152,8 @@ export class Battery extends Collection {
       nodeUuid: this.nodeUuid,
       ui: this.uiNode,
       enabled: this.enabled,
-      charge: this.ampereSeconds === Infinity ? "Infinity" : this.ampereSeconds / (60 * 60),
-      maxAmpere: this.maxAmpereSeconds === Infinity ? "Infinity" : this.maxAmpereSeconds
+      chargePercent: this.remainingCharge.isFinite() ? this.getChargePercentage() : "Infinity",
+      maxAmpere: this.maxCharge.isFinite() ? this.maxCharge.coulomb : "Infinity"
     };
   }
 

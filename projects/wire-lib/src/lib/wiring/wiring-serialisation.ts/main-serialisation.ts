@@ -1,6 +1,5 @@
 import { NODE_TEMPLATES } from '../node-templates';
 import type { FromJson, FromJsonOptions } from '../serialisation';
-import { ParrallelWire } from '../wirings/parrallel-wire';
 import { ToggleSwitch } from '../wirings/toggle-switch';
 import { Wire } from '../wirings/wire';
 import type { Wiring } from '../wirings/wiring.a';
@@ -11,7 +10,7 @@ import { ParralelWireSerialsiation } from './parralel-wire';
 import { PicoSerialisation } from './pico-serialisation';
 import { RelayFactory } from './relay';
 import { ResistorSerial } from './resistor';
-import type { SerialisationFactory, SerialisationReturn } from './serialisation-factory';
+import { SerialisationReturn, type SerialisationFactory } from './serialisation-factory';
 import { SwitchFactory } from './switch';
 import { ToggleSwitchSerialisation } from './toggle-switch';
 import { TransformatorSer } from './transformator';
@@ -19,9 +18,8 @@ import { WireSerialsiation } from './wire-serialsiation';
 import { isDevMode } from '@angular/core';
 
 
-
-
 const serialisations = [
+    ParralelWireSerialsiation,
     BatteryFactory,
     LedSerializer,
     PicoSerialisation,
@@ -31,9 +29,8 @@ const serialisations = [
     ToggleSwitchSerialisation,
     TransformatorSer,
     WireSerialsiation,
-    Esp32Serial,
-    ParralelWireSerialsiation
-] satisfies Array<new () => SerialisationFactory<Wiring>>
+    Esp32Serial
+] as const satisfies Array<new () => SerialisationFactory<Wiring>>
 
 
 const serialisationMap = Object.fromEntries(serialisations.map(s => {
@@ -44,7 +41,13 @@ const serialisationMap = Object.fromEntries(serialisations.map(s => {
         throw new Error("mismatched factory name")
     }
 
-    return [instance.factory.typeName, instance];
+    let typeName = instance.factory.typeName
+    if ("typeName" in instance) {
+        // for depreacted serialsiations
+        typeName = instance.typeName
+    }
+
+    return [typeName, instance];
 }))
 
 
@@ -52,7 +55,7 @@ export function startSerialize<T extends Wiring>(json, optinos: FromJsonOptions)
     optinos.uiSerialisationMap = new Map()
 
 
-    const serializerClasses: Array<FromJson> = [Wire, ToggleSwitch, ParrallelWire];
+    const serializerClasses: Array<FromJson> = [Wire, ToggleSwitch];
     /* for (const val of serializerClasses) {
         
          optinos.uiSerialisationMap.set

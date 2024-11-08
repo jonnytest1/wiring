@@ -2,7 +2,6 @@ import type { UINode } from '../wiring-ui/ui-node';
 import type { Collection } from './collection';
 import type { CircuitSolver } from './computation/circuit-solver';
 import type { RegisterOptions, REgistrationNode } from './interfaces/registration';
-import type { ParrallelWire } from './parrallel-wire';
 import { noConnection } from './resistance-return';
 import type { Impedance } from './units/impedance';
 import { Voltage } from './units/voltage';
@@ -23,7 +22,7 @@ export class Connection implements Wiring {
   resistance: number;
 
 
-  connectedTo?: Wire | ParrallelWire;
+  connectedTo?: Wire;
 
   getImpedance(): Impedance {
     throw new Error("shouldnt run since its not registered")

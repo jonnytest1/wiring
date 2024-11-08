@@ -4,6 +4,7 @@ import { JsonSerializer } from '../serialisation'
 import { Connection } from './connection'
 import { noConnection } from './resistance-return';
 import { Resistor } from "./resistor"
+import { Impedance } from './units/impedance';
 import type { Wire } from './wire'
 import type { GetResistanceOptions, ResistanceReturn } from './wiring.a'
 export class Switch extends Resistor {
@@ -17,12 +18,12 @@ export class Switch extends Resistor {
   constructor() {
     super(0)
   }
-  override getTotalResistance(from: any, options: GetResistanceOptions): ResistanceReturn {
-    options.addStep(this)
+
+  override getImpedance() {
     if (this.enabled) {
-      return super.getTotalResistance(from, options)
+      return super.getImpedance()
     }
-    return noConnection(this)
+    return Impedance.BLOCKED
   }
 
 

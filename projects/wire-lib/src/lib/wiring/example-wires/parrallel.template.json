@@ -15,7 +15,7 @@
 						"type": "Wire",
 						"connectedWire": {
 							"type": "Resistor",
-							"resistance": 0,
+							"resistance": 20,
 							"outC": {
 								"type": "ParrallelWire",
 								"uuid": "584d9799-6e79-4aaf-891c-afcb8f62981f",

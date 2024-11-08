@@ -33,6 +33,9 @@ export class Charge {
     isZero() {
         return this._coulomb == 0
     }
+    isFinite() {
+        return isFinite(this.coulomb)
+    }
 
     static from(current: Current, time: Time) {
         return new Charge(current.current * time.seconds)

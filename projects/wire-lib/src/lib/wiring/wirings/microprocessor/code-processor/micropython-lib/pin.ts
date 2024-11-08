@@ -12,7 +12,7 @@ export function boundPins(pipico: MicroProcessorBase) {
 
     return {
       toggle() {
-        pipico.pinMap[pin].outputValue = 1 - pipico.pinMap[pin].outputValue
+        pipico.pinMap[pin].toggle()
 
       }
     }

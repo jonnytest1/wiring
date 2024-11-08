@@ -37,13 +37,6 @@ export class Collection extends Wiring {
     this.applytoJson(jsonObj);
     return jsonObj;
   }
-
-  getTotalResistance(from: Wiring, options: GetResistanceOptions): ResistanceReturn {
-    throw new Error('Method not implemented.');
-  }
-  pushCurrent(options: CurrentOption, from: Wiring): CurrentCurrent {
-    throw new Error('Method not implemented.');
-  }
   override getImpedance(): Impedance {
     throw new Error('Method not implemented.');
   }

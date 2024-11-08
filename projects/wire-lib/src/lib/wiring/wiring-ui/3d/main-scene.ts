@@ -10,8 +10,7 @@ import {
 import * as THREE from "three"
 import type { NodeEl, NodeTemplate } from '../../wiring.component';
 import { nodesSubject, type NodeWithPos } from './scene-data';
-import { Wire } from '../../wirings/wire';
-import { ParrallelWire } from '../../wirings/parrallel-wire';
+import { Wire } from '../../wirings/wire'
 import type { Indexable, IndexableStatic, Wiring } from '../../wirings/wiring.a';
 import { ImageAsset } from './asset/image';
 import { TransformedAsset } from './asset/transformed-asset';
@@ -150,18 +149,8 @@ export class GameScene extends ThreeScene {
 
                     const nodeWires = node.node.uiNode.getWires()
                     nodeWires.forEach(wire => {
-                        if (wire instanceof ParrallelWire) {
-                            for (const inWire of wire.inC) {
-                                for (const outC of wire.outC) {
-                                    const tWire = new Wire();
-                                    tWire.inC = inWire;
-                                    tWire.outC = outC;
-                                    this.wires.add(tWire);
-                                }
-                            }
-                        } else {
-                            this.wires.add(wire);
-                        }
+                        this.wires.add(wire);
+
                     });
 
                 }
@@ -207,8 +196,8 @@ export class GameScene extends ThreeScene {
         this.wireElements.length = 0
 
         this.wires.forEach((wire, i, i2) => {
-
-            const connectionParent = wire.inC?.parent;
+            debugger
+            /*const connectionParent = wire.inC?.parent;
             const relativeFrom = connectionParent?.uiNode?.getInOutComponent(wire.inC?.id)?.getRelativeOutVector();
             if (!relativeFrom) {
                 return
@@ -242,7 +231,7 @@ export class GameScene extends ThreeScene {
             }
             const line = new LineMesh(wireFrom, wireTo)
             this.add(line)
-            this.wireElements.push(line)
+            this.wireElements.push(line)*/
         })
     }
 

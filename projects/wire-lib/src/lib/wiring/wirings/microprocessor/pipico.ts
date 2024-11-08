@@ -29,16 +29,19 @@ export class PiPico extends MicroProcessorBase {
 
   operationResistance = 10
 
-  registerTimestamp: number;
+
 
 
   instanceUuid = uuid();
-  topLevelNodes: REgistrationNode[];
 
   jsonActive = false
   jsonStringifyTs: number;
 
   executer = new MicroPythonExecuter(this)
+
+
+
+
   constructor() {
     super({
       pinCount: 40,
@@ -63,45 +66,6 @@ export class PiPico extends MicroProcessorBase {
     this.executer.update(newCoe)
   }
 
-  override register(options: RegisterOptions) {
-
-    if (this.registerTimestamp === options.registrationTimestamp) {
-
-      return
-    }
-
-    this.registerTimestamp = options.registrationTimestamp;
-
-    const subNodes: Array<REgistrationNode> = [{ name: PiPico.typeName }]
-    this.topLevelNodes = options.nodes;
-    this.topLevelNodes.push(subNodes)
-
-    if (!this.batteryConnection) {
-      this.getBatteryConnection({
-        forParrallel: 1, addStep() { },
-        checkTime: Date.now()
-      })
-    }
-
-
-    Object.keys(this.pinMap)
-      .filter(pinid => !this.tagMap.ground.includes(+pinid))
-      .filter(pinid => this.pinMap[pinid].mode === "OUT")
-      .forEach(pinid => {
-        const container = this.pinMap[+pinid].con
-        if (container != this.batteryConnection) {
-          const outputSubNodes: Array<REgistrationNode> = []
-          subNodes.push(outputSubNodes)
-
-          container.register({ ...options, from: this, nodes: outputSubNodes })
-        }
-      })
-
-
-
-    this.batteryConnection?.register({ ...options, nodes: this.topLevelNodes, from: this })
-  }
-
   override toJSON(from, context) {
     if (!getJsonStringifyTime()) {
       throw new Error("deprecated call")
@@ -118,12 +82,13 @@ export class PiPico extends MicroProcessorBase {
     this.jsonStringifyTs = getJsonStringifyTime()
     const con = {}
     if (!this.batteryConnection) {
-      this.getBatteryConnection({
+      debugger
+      /*this.getBatteryConnection({
         addStep(w) {
 
         },
         checkTime: Date.now(),
-      })
+      })*/
     }
 
     Object.keys(this.pinMap)

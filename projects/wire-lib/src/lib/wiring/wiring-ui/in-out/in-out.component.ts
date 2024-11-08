@@ -3,9 +3,9 @@ import { Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { BindingBoolean } from '../../../utils/type-checker';
 import { BoundingBox } from '../../util/bounding-box';
 import { WiringDataService } from '../../wiring.service';
-import { ParrallelWire } from '../../wirings/parrallel-wire';
 import { CommonModule } from '@angular/common';
 import { Vector2 } from '../../util/vector';
+import type { Connection } from '../../wirings/connection';
 
 @Component({
   selector: 'app-in-out',
@@ -66,6 +66,15 @@ export class InOutComponent implements OnInit, AfterViewInit {
     return inVec;
   }
 
+
+  getVector(con: Connection) {
+    if (this.node.inC === con) {
+      return this.getInVector()
+    } else {
+      return this.getOutVector()
+    }
+  }
+
   ngOnInit() {
 
 
@@ -110,12 +119,13 @@ export class InOutComponent implements OnInit, AfterViewInit {
       const draggedOutConnection = this.wiringService.dragConnection;
       this.clearDragCache();
       draggedOutConnection.connectTo(this.node.inC);
+      this.wiringService.wireChange.next()
     } else if (this.wiringService.editingWire) {
-
-      const parrallelWireEnd = new ParrallelWire();
-      parrallelWireEnd.newInC(this.wiringService.editingWire.component.wire.inC);
-      parrallelWireEnd.newOutC(this.wiringService.editingWire.component.wire.outC);
-      parrallelWireEnd.newOutC(this.node.inC);
+      debugger
+      /* const parrallelWireEnd = new ParrallelWire();
+       parrallelWireEnd.newInC(this.wiringService.editingWire.component.wire.inC);
+       parrallelWireEnd.newOutC(this.wiringService.editingWire.component.wire.outC);
+       parrallelWireEnd.newOutC(this.node.inC);*/
     }
   }
 }

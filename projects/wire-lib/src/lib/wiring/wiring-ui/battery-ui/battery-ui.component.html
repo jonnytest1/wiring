@@ -19,7 +19,7 @@
   <input type="number"
          name="maxampere"
          #maxampere
-         [value]="node.maxAmpereSeconds/3600"
+         [value]="node.maxCharge.coulomb/3600"
          (change)="updateMaxAmpere(+maxampere.value)">
   <br>
   <label for="voltage">voltage</label>

@@ -15,7 +15,12 @@ export function nor() {
 
         inputA: orGate.inA,
         inputB: orGate.inB,
-        output: notGate.inverted_out
+        output: notGate.inverted_out,
+
+        _debug: {
+            orGate,
+            notGate,
+        }
     }
 
 

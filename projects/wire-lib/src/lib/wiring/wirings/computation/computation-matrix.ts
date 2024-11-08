@@ -26,6 +26,7 @@ interface IterateNodesOpts {
 
 
 interface Label {
+    index: string
     resistance: Impedance
     currentFraction: () => any
     current: () => Current;
@@ -39,10 +40,14 @@ interface CircuitNodeData {
     resistance: Impedance;
     current: (() => Current);
     voltageDrop: () => Voltage;
+
+    instances: Array<{ ref: string, parent: string }>
 }
 
 interface VoltageSource {
     source: Wiring;
+
+    ground: Connection
     nodes: Array<REgistrationNode>;
 
     /**
@@ -90,8 +95,9 @@ export class ComputationMatrix {
             const currentIndex = encodeNumberToChars(i)
             const currentSource = sources[i];
             this.sourceMaps.set(currentSource.source, currentIndex)
+            const self = this
             const initialLabel: Label = {
-
+                index: currentIndex,
                 currentFraction() {
                     return "1"
                 },
@@ -99,12 +105,21 @@ export class ComputationMatrix {
                     return initialLabel.currentComputed ??= this.solveCurrent(currentIndex)
                 },
                 voltageDrop() {
-                    debugger
+                    //gets overwritten during registering source
+                    // debugger
                     return initialLabel.voltageComputed ??= Voltage.ZERO
                 },
-                resistance: Impedance.ZERO
+                get resistance() {
+                    return self.impedanceForNode(currentIndex)
+                }
             };
             this.labels[currentIndex] = initialLabel
+
+            this.data.set(currentSource.ground, {
+                voltageDrop: () => Voltage.ZERO,
+                current: () => this.solveCurrent(currentIndex)
+            } as CircuitNodeData)
+
 
             this.currentExpressions[currentIndex] = () => ({
                 currentIndex,
@@ -170,9 +185,8 @@ export class ComputationMatrix {
                 //currentExprStr[i] = currentExprStr[i].replace(`R${e.index}__`, `${e.impedance.impedance}`)
 
             }
-            debugger
             this.solution = solver.solveEquations([...equations])
-            debugger
+
 
 
         }
@@ -227,6 +241,7 @@ export class ComputationMatrix {
 
                     const combined = Impedance.combine(subExpression.resistanceExpr.map(r => this.impedances[r].impedance))
                     const branchLabel: Label = {
+                        index: laneRef,
                         current: () => {
                             return branchLabel.currentComputed ??= Current.fromVoltage(branchLabel.voltageDrop(), combined);
                         },
@@ -275,6 +290,7 @@ export class ComputationMatrix {
 
                 const parentLabel: Label = {
                     resistance: impedanceExp,
+                    index: nodeRef,
                     currentFraction() {
                         debugger
                     },
@@ -282,7 +298,30 @@ export class ComputationMatrix {
                         return parentLabel.currentComputed ??= this.labels[opts.currentIndex].current()
                     },
                     voltageDrop: () => {
-                        return parentLabel.voltageComputed ??= Voltage.fromCurrent(parentLabel.current(), this.impedanceForNode(nodeRef))
+
+
+
+                        const parent = this.labels[opts.currentIndex];
+                        const parnetVoltage = parent.voltageDrop()
+
+                        let resistancePercent = impedanceExp.percentOf(parent.resistance);
+                        if (!isFinite(resistancePercent)) {
+                            debugger
+                        }
+
+
+                        if (!impedanceExp.isFinite()) {
+                            // the first element gets all the voltage if its infinite (comparator use case)
+                            if (nodeRef.endsWith("_a")) {
+                                resistancePercent = 1
+                            } else {
+                                resistancePercent = 0
+                            }
+
+
+                        }
+
+                        return parentLabel.voltageComputed ??= parnetVoltage.fraction(resistancePercent)
                     }
 
                 };
@@ -333,20 +372,68 @@ export class ComputationMatrix {
                         resistance: Impedance.ZERO
                     } as Label)
                     this.labels[opts.currentIndex].voltageDrop = () => {
-                        debugger
+                        //debugger
                         return this.labels[opts.currentIndex].voltageComputed = (voltage?.() ?? Voltage.ZERO).with(providedVoltage)
                     }
 
                 }
 
+                const nodeLabel: Label = {
+                    index: nodeRef,
+                    current: () => {
+                        const currents = this.nodeCurrents.get(node.connection);
 
+                        //  nodeLabel.currentComputed = this.labels[opts.currentIndex].current()
+                        return new Current(sum(currents.map(c => {
+                            this.usedCurrents.add(c)
+                            return this.labels[c].current().current;
+                        })));
+                    },
+                    voltageDrop: () => {
+                        if (nodeLabel.voltageComputed) {
+                            return nodeLabel.voltageComputed
+                        }
+
+                        const parents = this.data.get(node.connection).instances
+
+
+
+                        const voltages = parents.map(parentStr => {
+                            const parent = this.labels[parentStr.parent];
+                            const parnetVoltage = parent.voltageDrop()
+
+                            let resistancePercent = compImpedance.percentOf(parent.resistance);
+                            if (!compImpedance.isFinite()) {
+                                // the first element gets all the voltage if its infinite (comparator use case)
+                                if (parentStr.ref.endsWith("_a")) {
+                                    resistancePercent = 1
+                                } else {
+                                    resistancePercent = 0
+                                }
+
+
+                            }
+
+                            return parnetVoltage.fraction(resistancePercent)
+                        })
+
+                        return nodeLabel.voltageComputed = Voltage.fromParents(voltages)
+
+                    },
+                    currentFraction: function () {
+                        debugger
+                    },
+                    resistance: compImpedance
+                };
+
+                let previusNodeCurrents = this.nodeCurrents.get(node.connection);
+                if (!previusNodeCurrents) {
+                    previusNodeCurrents = []
+                    this.nodeCurrents.set(node.connection, previusNodeCurrents)
+                }
+                previusNodeCurrents.push(opts.currentIndex)
                 if (compImpedance.isPositive()) {
-                    let previusNodeCurrents = this.nodeCurrents.get(node.connection);
-                    if (!previusNodeCurrents) {
-                        previusNodeCurrents = []
-                        this.nodeCurrents.set(node.connection, previusNodeCurrents)
-                    }
-                    previusNodeCurrents.push(opts.currentIndex)
+
 
                     expr.push(() => {
                         this.usedResistances.add(nodeRef)
@@ -359,53 +446,29 @@ export class ComputationMatrix {
                         return `-(R${nodeRef}__*(${currents.map(c => `I${c}___`).join("+")}))`;
                     })
 
-                    const nodeLabel: Label = {
-                        current: () => {
-                            const currents = this.nodeCurrents.get(node.connection);
+                }
+                this.labels[nodeRef] = nodeLabel
+                opts.source._registrationNodeData.set(node, nodeLabel)
 
-                            //  nodeLabel.currentComputed = this.labels[opts.currentIndex].current()
-                            return new Current(sum(currents.map(c => {
-                                this.usedCurrents.add(c)
-                                return this.labels[c].current().current;
-                            })));
-                        },
-                        voltageDrop: () => {
-                            if (nodeLabel.voltageComputed) {
-                                return nodeLabel.voltageComputed
-                            }
-
-                            const parent = this.labels[opts.currentIndex];
-                            const parnetVoltage = parent.voltageDrop()
-
-                            let resistancePercent = compImpedance.percentOf(parent.resistance);
-                            if (!compImpedance.isFinite()) {
-                                // the first element gets all the voltage if its infinite (comparator use case)
-                                if (nodeRef.endsWith("_a")) {
-                                    resistancePercent = 1
-                                } else {
-                                    resistancePercent = 0
-                                }
-
-
-                            }
-
-                            return nodeLabel.voltageComputed = parnetVoltage.fraction(resistancePercent)
-
-                        },
-                        currentFraction: function () {
-                            debugger
-                        },
-                        resistance: compImpedance
-                    };
-                    this.labels[nodeRef] = nodeLabel
-
-                    opts.source._registrationNodeData.set(node, nodeLabel)
+                const prev = this.data.get(node.connection)
+                if (prev) {
+                    prev.instances.push({
+                        parent: opts.currentIndex,
+                        ref: nodeRef
+                    })
+                } else {
                     this.data.set(node.connection, {
                         ...nodeLabel,
                         node: node.node,
                         resistance: compImpedance,
+                        instances: [{
+                            parent: opts.currentIndex,
+                            ref: nodeRef
+                        }]
                     })
                 }
+
+
             }
         }
 

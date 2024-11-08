@@ -108,11 +108,14 @@ export class CircuitSolver {
         this.computed = new ComputationMatrix(validConfigs
             .map(s => ({
                 nodes: s.nodes!,
-                source: s.source
+                source: s.source,
+                ground: s.ground
             })))
 
         for (const source of validConfigs) {
-            source.totalImpedance = this.computed.getImpedance(source.source)
+            if (source.source.providedVoltage().isPositive()) {
+                source.totalImpedance = this.computed.getImpedance(source.source)
+            }
         }
 
 
@@ -139,7 +142,7 @@ export class CircuitSolver {
             data: this.computed,
             voltageOnlyRun: true,
 
-            voltage: new Voltage(0),
+            voltageDrop: new Voltage(0),
             current: new Current(0),
 
             supplyVoltage: new Voltage(0),
@@ -154,7 +157,7 @@ export class CircuitSolver {
                 postProcessCallbacks.push(cb)
             },
         }
-        debugger
+
         this.processCurrentRecursive(optionsVoltageOnly, source.nodes)
 
         let options: ProcessCurrentOptions = {
@@ -167,7 +170,6 @@ export class CircuitSolver {
                 postProcessCallbacks.push(cb)
             },
         }
-        debugger
         this.processCurrentRecursive(options, source.nodes)
 
         for (const postProcessCallback of postProcessCallbacks) {
@@ -198,17 +200,22 @@ export class CircuitSolver {
                 if (options.voltageOnlyRun) {
                     if (node.connection) {
                         const connectionData = this.computed.data.get(node.connection)
-
+                        if (!connectionData) {
+                            debugger;
+                        }
                         const v = connectionData.voltageDrop()
                         node.node.setVoltage(node.connection, v)
                     }
                 } else {
                     if (node.connection) {
                         const connectionData = this.computed.data.get(node.connection)
+                        if (!connectionData) {
+                            debugger;
+                        }
                         options = {
                             ...options,
                             current: connectionData.current(),
-                            voltage: connectionData.voltageDrop()
+                            voltageDrop: connectionData.voltageDrop()
                         }
 
 
@@ -226,58 +233,15 @@ export class CircuitSolver {
         return options
     }
 
-
-    /*
-        private getTotalResistance(nodes: Array<REgistrationNode>) {
-            let impedance = new Impedance(0)
-            for (const element of nodes) {
-                const currentStartElement = element;
-    
-                if (currentStartElement instanceof Array) {
-                    let hasFinite = false
-                    let hasInfinite = false
-                    let subImpedances = currentStartElement.map(subNodes => {
-                        const sub = this.getTotalResistance(subNodes);
-                        this.resistanceMap.set(subNodes, sub)
-                        hasInfinite ||= !isFinite(sub.impedance)
-                        return sub;
-                    }).filter(imp => !isNaN(imp.impedance));
-    
-    
-                    if (hasFinite && hasInfinite) {
-                        subImpedances = subImpedances.filter(i => isFinite(i.impedance))
-    
-                    }
-    
-                    if (!subImpedances.length) {
-                        debugger
-                        return new Impedance(NaN)
-                    }
-                    const parralelBlockImpedance = Impedance.parrallel(subImpedances);
-                    this.resistanceMap.set(currentStartElement, parralelBlockImpedance);
-                    impedance = impedance.chain(parralelBlockImpedance)
-                } else {
-                    const nodeImpedance = currentStartElement.node.getImpedance({
-                        from: currentStartElement.connection
-                    });
-                    this.nodeResistanceMAp.set(currentStartElement.node, nodeImpedance)
-                    impedance = impedance.chain(nodeImpedance)
-                }
-    
-            }
-            return impedance
-    
-        }*/
-
     public computeNetwork() {
 
         for (const source of this.powerSources) {
             const nodes: Array<REgistrationNode> = [];
-
+            source.ground ??= this.ground
             const optinos: RegisterOptions = {
                 source,
                 nodes,
-                until: source.ground || this.ground,
+                until: source.ground,
                 from: null,
                 parrallelLevel: 0,
                 registrationTimestamp: Date.now(),
@@ -478,9 +442,11 @@ export class CircuitSolver {
 
 
     log(o: { withImp?: boolean } = {}) {
-        const debugMap = this.powerSources.map(s => this.logMap(s.nodes, {
-            ...o, source: s
-        }))
+        const debugMap = this.powerSources
+            .filter(s => s.source.providedVoltage().isPositive())
+            .map(s => this.logMap(s.nodes, {
+                ...o, source: s
+            }))
         console.log(debugMap)
         return debugMap
     }

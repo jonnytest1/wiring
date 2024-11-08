@@ -27,7 +27,9 @@ export class Charge {
     process(processedCharge: Charge) {
         this._coulomb = Math.max(this._coulomb - processedCharge.coulomb, 0)
     }
-
+    copy() {
+        return new Charge(this.coulomb)
+    }
     isZero() {
         return this._coulomb == 0
     }

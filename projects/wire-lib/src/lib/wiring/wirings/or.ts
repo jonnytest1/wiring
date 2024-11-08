@@ -25,10 +25,16 @@ export class OrGate extends Wiring {
     vccToOutResistance = new Impedance(10)
     voltageDropV: Voltage;
     voltageDropAIn: Voltage;
+    voltageDropBIn: Voltage;
+
+    currentAIn: Current;
+    currentBIn: Current;
+
+    history: Array<{ a: Voltage, b: Voltage, aC: Current, bC: Current }> = []
 
     private readonly inToGndImpedance = new Impedance(10000);
 
-    private isEnabled() {
+    isEnabled() {
         return this.enabledA || this.enabledB
     }
     override getImpedance(opts: GetImpedanceContext): Impedance {
@@ -44,30 +50,35 @@ export class OrGate extends Wiring {
         let enabled = this.isEnabled()
         if (options.fromConnection === this.inA) {
             if (options.current.isPositive()) {
-                this.enabledA = false
-            } else {
                 this.enabledA = true
+            } else {
+                this.enabledA = false
             }
 
             if (enabled !== this.isEnabled()) {
                 this.solver.invalidate()
             }
+            this.currentAIn = options.current
             this.voltageDropAIn = Voltage.fromCurrent(options.current, this.inToGndImpedance)
+            this.history.push({ a: this.voltageDropAIn, b: this.voltageDropBIn, aC: this.currentAIn, bC: this.currentBIn })
             return {
                 ...options,
                 current: Current.ZERO(),
-                voltage: options.voltage.dropped(this.voltageDropAIn)
+                voltageDrop: options.voltageDrop.dropped(this.voltageDropAIn)
             }
         } else if (options.fromConnection === this.inB) {
             if (options.current.isPositive()) {
-                this.enabledB = false
-            } else {
                 this.enabledB = true
+            } else {
+                this.enabledB = false
             }
 
             if (enabled !== this.isEnabled()) {
                 this.solver.invalidate()
             }
+            this.currentBIn = options.current
+            this.voltageDropBIn = options.voltageDrop
+            this.history.push({ a: this.voltageDropAIn, b: this.voltageDropBIn, aC: this.currentAIn, bC: this.currentBIn })
             return { ...options, current: Current.ZERO() }
 
         } else if (options.fromConnection === this.vcc) {
@@ -77,12 +88,12 @@ export class OrGate extends Wiring {
 
                 return {
                     ...options,
-                    voltage: options.voltage.dropped(this.voltageDropV)
+                    voltageDrop: options.voltageDrop.dropped(this.voltageDropV)
                 }
             } else {
                 return {
                     ...options,
-                    voltage: options.voltage.dropped(this.voltageDropV),
+                    voltageDrop: options.voltageDrop.dropped(this.voltageDropV),
                     current: Current.ZERO()
                 }
             }

@@ -60,7 +60,7 @@ export class Battery extends Collection {
     if (isNaN(this.networkResistance.impedance) || this.ampereSeconds == 0) {
       return options
     }
-    debugger
+
     const batteryVoltage = new Voltage(this.voltage);
     const current = options.data.getCurrent(this)
     try {

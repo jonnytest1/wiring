@@ -23,22 +23,34 @@ export class Comparator extends Wiring {
         } else if (opts.from === this.positive) {
             return new Impedance(Infinity);
         }
-        return new Impedance(0)
+        if (this.isEnabled()) {
+            return new Impedance(0)
+        }
+        return new Impedance(Infinity);
+
     }
 
     getVoltageDifferential() {
         return this.negativeVoltage.dropped(this.positiveVoltage)
     }
 
+    isEnabled() {
+        return !this.getVoltageDifferential().isPositive()
+    }
+
     override processCurrent(options: ProcessCurrentOptions): ProcessCurrentReturn {
+
         if (options.fromConnection === this.negative) {
-            this.negativeVoltage = options.voltage
+            this.negativeVoltage = options.voltageDrop
             return options
         } else if (options.fromConnection === this.positive) {
-            this.positiveVoltage = options.voltage
+            this.positiveVoltage = options.voltageDrop
             return options
         } else if (options.fromConnection === this.vcc) {
-            if (!this.getVoltageDifferential().isPositive()) {
+
+
+
+            if (!this.isEnabled()) {
                 return {
                     ...options,
                     current: Current.ZERO()

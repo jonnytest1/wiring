@@ -28,6 +28,8 @@ export class Timer555Plan {
         resistor1: Resistor;
         resistor2: Resistor;
         resistor3: Resistor;
+        srLatch: SRLatch
+        dischargeTransistor: Transistor
     }
 
 
@@ -68,7 +70,9 @@ export class Timer555Plan {
             comparator16,
             resistor1,
             resistor2,
-            resistor3
+            resistor3,
+            srLatch,
+            dischargeTransistor
         }
     }
 }

@@ -1,3 +1,4 @@
+import { sum } from '../../util/array';
 import type { Capacitance } from './capacitance';
 import type { Charge } from './charge';
 import type { Current } from './current';
@@ -44,6 +45,12 @@ export class Voltage {
     dropped(other: Voltage) {
         return new Voltage(this.voltage - other.voltage)
     }
+
+    static fromParents(voltages: Voltage[]): Voltage {
+        return new Voltage(sum(voltages.map(c => c.voltage)))
+    }
+
+
     static fromCurrent(current: Current, imp: Impedance): Voltage {
         return new Voltage(current.current * imp.impedance)
     }

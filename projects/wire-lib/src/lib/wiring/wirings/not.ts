@@ -23,6 +23,8 @@ export class NotGate extends Wiring {
     private readonly inToGndImpedance = new Impedance(10000);
     voltageDropIn: Voltage;
 
+    inHistory: Array<{ in: Current }> = []
+
     override getImpedance(opts: GetImpedanceContext): Impedance {
         if (opts.from === this.vcc) {
             if (this.enabled) {
@@ -36,6 +38,7 @@ export class NotGate extends Wiring {
 
         if (options.fromConnection === this.in) {
             let enabled = this.enabled
+
             if (options.current.isPositive()) {
                 this.enabled = false
             } else {
@@ -45,10 +48,11 @@ export class NotGate extends Wiring {
                 this.solver.invalidate()
             }
             this.voltageDropIn = Voltage.fromCurrent(options.current, this.inToGndImpedance)
+            this.inHistory.push({ in: options.current })
             return {
                 ...options,
                 current: Current.ZERO(),
-                voltage: options.voltage.dropped(this.voltageDropIn)
+                voltageDrop: options.voltageDrop.dropped(this.voltageDropIn)
             }
         } else if (options.fromConnection === this.vcc) {
             this.voltageDropV = Voltage.fromCurrent(options.current, this.vccToInvOutImpedance)
@@ -57,12 +61,12 @@ export class NotGate extends Wiring {
 
                 return {
                     ...options,
-                    voltage: options.voltage.dropped(this.voltageDropV)
+                    voltageDrop: options.voltageDrop.dropped(this.voltageDropV)
                 }
             } else {
                 return {
                     ...options,
-                    voltage: options.voltage.dropped(this.voltageDropV),
+                    voltageDrop: options.voltageDrop.dropped(this.voltageDropV),
                     current: Current.ZERO()
                 }
             }

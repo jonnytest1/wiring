@@ -19,7 +19,7 @@ export interface CurrentCurrent {
 
 
 export interface ProcessCurrentOptions {
-  voltage: Voltage,
+  voltageDrop: Voltage,
   supplyVoltage: Voltage
   current: Current
   deltaTime: Time

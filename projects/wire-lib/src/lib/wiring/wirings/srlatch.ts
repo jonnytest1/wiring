@@ -21,8 +21,17 @@ export function SRLatch() {
         set: set.inputB,
         reset: reset.inputA,
         qInv,
-        q
+        q,
+        _debug: {
+            reset,
+            set,
+            qEnabled: reset._debug.notGate,
+            qInvEnabled: set._debug.notGate
+        }
     }
 
 
 }
+
+
+export type SRLatch = ReturnType<typeof SRLatch>

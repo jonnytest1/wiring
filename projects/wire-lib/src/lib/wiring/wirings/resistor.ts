@@ -42,7 +42,6 @@ export class Resistor extends Collection implements Wiring, IndexableStatic {
     this.evaluateFunction(this.incomingCurrent)
     return {
       ...options,
-      voltage: options.voltage.dropped(this.voltageDropV)
     }
   }
 

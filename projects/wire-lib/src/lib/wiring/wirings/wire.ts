@@ -5,6 +5,7 @@ import type { RegisterOptions, REgistrationNode } from './interfaces/registratio
 import type { Impedance } from './units/impedance';
 import { Wiring, type ProcessCurrentOptions, type ProcessCurrentReturn } from './wiring.a';
 
+
 export class Wire extends Wiring {
 
   static typeName = "Wire"
@@ -132,7 +133,7 @@ export class Wire extends Wiring {
   }
 
 
-  private getOtherConnections(from: Connection) {
+  getOtherConnections(from: Connection) {
     return this.connections.filter(con => con != from)
   }
   override getImpedance(): Impedance {
@@ -144,9 +145,7 @@ export class Wire extends Wiring {
 
   toJSON(key, c: JsonContext) {
     return {
-      type: Wire.typeName,
       connectedWires: this.getOtherConnections(c.parents.at(-1)),
-      ui: this.uiNode
     };
   }
 }

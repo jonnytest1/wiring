@@ -1,11 +1,16 @@
 import type { Connection } from '../connection';
 import type { Impedance } from '../units/impedance';
 import type { Voltage } from '../units/voltage';
-import { Wiring, type Indexable } from '../wiring.a';
+import type { Wire } from '../wire';
+import type { Wiring } from '../wiring.a';
 export interface PowerSource {
   source: Wiring;
   ground: Connection | null;
   nodes?: Array<REgistrationNode>;
+
+
+  iterationMap: Map<Wire, Array<Connection>>
+
 
   totalImpedance?: Impedance
 

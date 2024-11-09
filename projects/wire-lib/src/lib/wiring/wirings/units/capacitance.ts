@@ -7,4 +7,5 @@ export class Capacitance {
     static fromMicro(microFarad: number) {
         return new Capacitance(microFarad / 1000000)
     }
+
 }   

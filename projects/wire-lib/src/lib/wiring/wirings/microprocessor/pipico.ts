@@ -8,6 +8,7 @@ import { Collection } from '../collection';
 import { getJsonStringifyTime, JsonSerializer, type FromJsonOptions } from '../../serialisation';
 import { MicroPythonExecuter } from './code-processor/micropython-lib/executer';
 import { MicroProcessorBase } from './microprocessor-base';
+import type { SerialiseOptinos } from '../../wiring-serialisation.ts/serialisation-factory';
 export type PinMode = "OUT" | "IN"
 export class PiPico extends MicroProcessorBase {
 
@@ -66,7 +67,7 @@ export class PiPico extends MicroProcessorBase {
     this.executer.update(newCoe)
   }
 
-  override toJSON(from, context) {
+  override toJSON(context: SerialiseOptinos) {
     if (!getJsonStringifyTime()) {
       throw new Error("deprecated call")
     }
@@ -74,7 +75,7 @@ export class PiPico extends MicroProcessorBase {
       return {
         type: PiPico.typeName,
         ref: this.instanceUuid,
-        pinConnection: this.getId(context.parents.at(-1).outC)
+        pinConnection: this.getId(context.fromConnection)
       }
     }
 

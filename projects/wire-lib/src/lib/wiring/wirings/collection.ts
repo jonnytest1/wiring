@@ -2,8 +2,7 @@
 import type { Connection } from './connection';
 import type { RegisterOptions } from './interfaces/registration';
 import type { Impedance } from './units/impedance';
-import type { Voltage } from './units/voltage';
-import type { CurrentCurrent, CurrentOption, GetResistanceOptions, Indexable, IndexableStatic, ProcessCurrentOptions, ProcessCurrentReturn, ResistanceReturn } from './wiring.a';
+import type { ProcessCurrentOptions, ProcessCurrentReturn } from './wiring.a';
 import { Wiring } from './wiring.a';
 
 
@@ -26,15 +25,10 @@ export class Collection extends Wiring {
     return this.inC?.register({ ...options, from: this });
   }
 
-  applytoJson(json: Record<string, any>) {
-    // to implement
-  }
-
-  toJSON(key?, c?): any {
+  toJSON(key?, c?) {
     const jsonObj = {
-      type: (this as unknown as IndexableStatic).constructor.typeName
+
     };
-    this.applytoJson(jsonObj);
     return jsonObj;
   }
   override getImpedance(): Impedance {

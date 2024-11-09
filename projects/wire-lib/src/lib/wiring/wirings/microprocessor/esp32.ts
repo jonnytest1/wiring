@@ -1,4 +1,5 @@
 import { getJsonStringifyTime } from '../../serialisation';
+import type { SerialiseOptinos } from '../../wiring-serialisation.ts/serialisation-factory';
 import { Connection } from '../connection';
 import { CppExecuter, type CppExecuterParams } from './code-processor/c++-lib/executer';
 import type { Executer } from './code-processor/executer';
@@ -52,7 +53,7 @@ export class Esp32 extends MicroProcessorBase {
     }
 
 
-    override toJSON(from, context) {
+    override toJSON(context: SerialiseOptinos) {
         if (!getJsonStringifyTime()) {
             throw new Error("deprecated call")
         }
@@ -60,7 +61,7 @@ export class Esp32 extends MicroProcessorBase {
             return {
                 type: Esp32.typeName,
                 ref: this.nodeUuid,
-                pinConnection: this.getId(context.parents.at(-1).outC)
+                pinConnection: this.getId(context.fromConnection)
             }
         }
 

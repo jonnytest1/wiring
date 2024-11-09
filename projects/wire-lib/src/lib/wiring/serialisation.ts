@@ -17,7 +17,7 @@ export interface ControllerRef {
   setControlRef: (controlRef, key: string) => void
 }
 type keys = "abc" | "def"
-export interface FromJsonOptions {
+export interface FromJsonOptions<T = Wiring> {
   inC?: Connection,
   wire?: Wire
   displayNodes?: NodeEl[],
@@ -26,14 +26,19 @@ export interface FromJsonOptions {
   /**
    * cache list i think
    */
-  controlRefs: Record<string, Array<Wiring>>
-  controllerRefs: Record<string, ControllerRef>
+  //controlRefs: Record<string, Array<Wiring>>
+  //controllerRefs: Record<string, ControllerRef>
+
+  references: Record<string, Wiring>
+
 
   constorlRefsInitialized: Promise<void>
   templateName?: string
 
   uiSerialisationMap?: Map<FromJson<"">, new (...args) => UINode>;
-  loadElement: (json, context: FromJsonOptions) => SerialisationReturn<never>
+  loadElement: (json, context: FromJsonOptions<T>) => SerialisationReturn<never>
+
+
 }
 
 
@@ -46,7 +51,7 @@ export interface FromJson<T extends string = ""> {
 }
 
 
-type UIJson = {
+export type UIJson = {
   ui: {
     x: number,
     y: number,
@@ -59,7 +64,6 @@ let jsonStringifyTime: number;
 export function getJsonStringifyTime() {
   return jsonStringifyTime
 }
-
 
 export function wiringJsonStringify(node: Battery) {
   try {

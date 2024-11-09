@@ -35,17 +35,4 @@ export class Transformator extends Resistor {
      }, from);
    }
  */
-
-  override applytoJson(json: Record<string, any>): void {
-    super.applytoJson(json);
-    json['providingBattery'] = this.providingBattery;
-    json['turnRatio'] = this.turnsRatio;
-  }
-
-
-  override readFromJson(json: Record<string, any>): void {
-    super.readFromJson(json)
-    this.turnsRatio = json['turnRatio'];
-  }
-
 }

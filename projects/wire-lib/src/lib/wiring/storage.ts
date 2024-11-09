@@ -6,7 +6,7 @@ import { NODE_TEMPLATES } from './node-templates';
 import { wiringJsonStringify, type FromJson, type FromJsonOptions } from './serialisation';
 import { Battery } from './wirings/battery';
 import { Wire } from './wirings/wire';
-import { serialize, startSerialize } from './wiring-serialisation.ts/main-serialisation';
+import { deserialize, startDeserialize } from './wiring-serialisation.ts/main-deserialisation';
 
 
 export const templateService = new InjectionToken<() => Promise<Array<{ name: string, content: string }>>>("loadtemplates")
@@ -71,15 +71,30 @@ export class LocalStorageSerialization {
     const controllerRefs: Record<string, { setControlRef: (controlRef, uuid: string) => void; }> = {};
 
     const controlRefsinitialized = new ResolvablePromise<void>();
+    options.uiSerialisationMap = new Map()
+
+    NODE_TEMPLATES.forEach(t => {
 
 
-    const batteries = parsed.map(obj => startSerialize<Battery>(obj, {
+      const nodeConstructor = t.prototype.factory() as FromJson<string>
+
+      nodeConstructor.uiConstructor = t;
+
+      options.uiSerialisationMap.set(nodeConstructor, t)
+    });
+
+
+    const batteries = parsed.map(obj => startDeserialize<Battery>(obj, {
       ...options,
-      controlRefs: controlRegfs,
+      // controlRefs: controlRegfs,
       constorlRefsInitialized: controlRefsinitialized.prRef,
-      controllerRefs: controllerRefs,
-      loadElement: serialize
+      // controllerRefs: controllerRefs,
+      loadElement: deserialize,
+      references: {}
     }).node);
+
+
+
 
     Object.keys(controllerRefs).forEach(key => {
       const controller = controllerRefs[key];

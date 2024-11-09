@@ -117,9 +117,6 @@ export class OrGate extends Wiring {
 
         options.nodes.push(instance)
 
-
-
-
         if (options.from == this.vcc) {
 
             options.next(this.out, { ...options, from: this })

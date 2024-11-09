@@ -1,9 +1,7 @@
 import type { TemplateRef } from '@angular/core';
 import { Component, Injector } from '@angular/core';
-import type { FromJson } from '../../serialisation';
 import { Battery } from '../../wirings/battery';
 import { Collection } from '../../wirings/collection';
-import type { Connection } from '../../wirings/connection';
 import { UINode } from '../ui-node';
 import { Charge } from '../../wirings/units/charge';
 

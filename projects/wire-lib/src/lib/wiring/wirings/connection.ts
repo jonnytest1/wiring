@@ -2,16 +2,16 @@ import type { UINode } from '../wiring-ui/ui-node';
 import type { Collection } from './collection';
 import type { CircuitSolver } from './computation/circuit-solver';
 import type { RegisterOptions, REgistrationNode } from './interfaces/registration';
-import { noConnection } from './resistance-return';
 import type { Impedance } from './units/impedance';
 import { Voltage } from './units/voltage';
 import { Wire } from './wire';
-import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ProcessCurrentOptions, ProcessCurrentReturn, ResistanceReturn, Wiring } from './wiring.a';
+import type { ProcessCurrentOptions, ProcessCurrentReturn, Wiring } from './wiring.a';
 
 export class Connection implements Wiring {
 
 
   constructor(public parent: Wiring, public id: string) { }
+
 
   solver?: CircuitSolver;
 

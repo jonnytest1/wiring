@@ -1,12 +1,12 @@
 import { v4 } from 'uuid';
 import type { UINode } from '../wiring-ui/ui-node';
-import type { PowerSource, RegisterOptions, REgistrationNode } from './interfaces/registration';
+import type { PowerSource, RegisterOptions } from './interfaces/registration';
 import type { Impedance } from './units/impedance';
 import { Voltage } from './units/voltage';
 import type { Time } from './units/time';
 import type { Current } from './units/current';
 import type { CircuitSolver } from './computation/circuit-solver';
-import type { Connection } from './connection';
+import { Connection } from './connection';
 import type { ComputationMatrix } from './computation/computation-matrix';
 
 
@@ -108,7 +108,7 @@ export interface Indexable<T extends string = string> {
   typeName: T
 }
 
-export type IndexableStatic = { constructor: Indexable }
+export type IndexableStatic = Wiring & { constructor: Indexable }
 
 
 
@@ -129,8 +129,12 @@ export abstract class Wiring {
 
   // abstract resistance: number
 
-
-
+  /*   mapConnections<T extends string>(...names: Array<T>) {
+      return Object.fromEntries(names
+        .map(n => [n, new Connection(this, `${(this.constructor as IndexableConstructor).typeName}${n}`)])
+      ) as Record<T, Connection>
+    }
+   */
   //abstract getTotalResistance(from: Wiring, options: GetResistanceOptions): ResistanceReturn;
   //abstract pushCurrent(options: CurrentOption, from: Wiring | null): CurrentCurrent;
 
@@ -139,7 +143,6 @@ export abstract class Wiring {
 
 
   abstract processCurrent(options: ProcessCurrentOptions): ProcessCurrentReturn;
-
 
   providedVoltage() {
     return Voltage.ZERO

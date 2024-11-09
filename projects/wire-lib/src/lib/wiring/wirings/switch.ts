@@ -25,12 +25,4 @@ export class Switch extends Resistor {
     }
     return Impedance.BLOCKED
   }
-
-
-  override applytoJson(json: Record<string, any>): void {
-    super.applytoJson(json);
-    json['controlRef'] = this.controlRef
-    json['enabled'] = this.enabled
-  }
-
 }

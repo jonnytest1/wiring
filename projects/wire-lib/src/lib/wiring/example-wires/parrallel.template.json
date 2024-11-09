@@ -1,9 +1,9 @@
 [
 	{
 		"prov": {
-			"type": "ParrallelWire",
+			"type": "Wire",
 			"uuid": "db09b2f1-2aec-4b2b-aa89-375537ac9a2f",
-			"outC": [
+			"connectedTo": [
 				{
 					"type": "LED",
 					"resistance": 5,
@@ -13,14 +13,17 @@
 					},
 					"outC": {
 						"type": "Wire",
-						"connectedWire": {
+						"connectedTo": {
 							"type": "Resistor",
 							"resistance": 20,
 							"outC": {
-								"type": "ParrallelWire",
+								"type": "Wire",
 								"uuid": "584d9799-6e79-4aaf-891c-afcb8f62981f",
-								"outC": [
-									"BatteryRef"
+								"connectedTo": [
+									{
+										"type": "Battery",
+										"ref": "db0sb2f1-2aec-4bsb-aa89-s37acsf"
+									}
 								]
 							},
 							"ui": {
@@ -28,7 +31,8 @@
 								"x": 890
 							},
 							"uuid": "a653ab8e-fac1-4688-94bf-4fd742cc0587"
-						}
+						},
+						"uuid": "12a6fb1d-4c0a-46a0-b286-0ed8df9b3d12"
 					},
 					"uuid": "77a6fb1d-4c0a-46a0-b286-0ed8df9b3d51"
 				},
@@ -41,14 +45,17 @@
 					},
 					"outC": {
 						"type": "Wire",
-						"connectedWire": {
+						"connectedTo": {
 							"type": "Resistor",
 							"resistance": 10,
 							"outC": {
-								"type": "ParrallelWire",
+								"type": "Wire",
 								"uuid": "584d9799-6e79-4aaf-891c-afcb8f62981f",
-								"outC": [
-									"BatteryRef"
+								"connectedTo": [
+									{
+										"type": "Battery",
+										"ref": "db0sb2f1-2aec-4bsb-aa89-s37acsf"
+									}
 								]
 							},
 							"ui": {
@@ -63,12 +70,13 @@
 			]
 		},
 		"type": "Battery",
+		"uuid": "db0sb2f1-2aec-4bsb-aa89-s37acsf",
 		"voltage": 5,
 		"ui": {
 			"y": 300,
 			"x": 570
 		},
-		"enabled": false,
+		"enabled": true,
 		"charge": 1,
 		"maxAmpere": 3600
 	}

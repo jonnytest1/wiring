@@ -10,6 +10,7 @@ import { v4 } from "uuid"
 import type { RegisterOptions, REgistrationNode } from './interfaces/registration';
 import { Impedance } from './units/impedance';
 import { Voltage } from './units/voltage';
+import type { SerialiseOptinos } from '../wiring-serialisation.ts/serialisation-factory';
 
 export class Resistor extends Collection implements Wiring, IndexableStatic {
 
@@ -19,8 +20,6 @@ export class Resistor extends Collection implements Wiring, IndexableStatic {
 
   voltageDrop: number
   incomingCurrent: CurrentOption;
-
-  uuid = v4()
   voltageDropV: Voltage;
   constructor(public resistance: number) {
     super(null, null)
@@ -56,7 +55,7 @@ export class Resistor extends Collection implements Wiring, IndexableStatic {
     if (options.withSerialise) {
       repr.details = {
         resistance: this.resistance,
-        uuid: this.uuid,
+        uuid: this.nodeUuid,
         ui: this.uiNode,
       }
     }
@@ -68,15 +67,14 @@ export class Resistor extends Collection implements Wiring, IndexableStatic {
 
     options.next(exit, { ...options, from: this })
   }
-  override applytoJson(json: Record<string, any>): void {
-    json['resistance'] = this.resistance
-    json['outC'] = this.outC.connectedTo
-    json['ui'] = this.uiNode
-    json['uuid'] = this.uuid
-  }
 
-  readFromJson(json: Record<string, any>) {
-    this.uuid = json['uuid']
-    this.resistance = json['resistance']
+
+
+  override toJSON(o: SerialiseOptinos) {
+    return {
+      ...super.toJSON(),
+      resistance: this.resistance,
+      outC: o.serialise(this.outC)
+    }
   }
 }

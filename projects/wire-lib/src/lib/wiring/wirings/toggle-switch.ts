@@ -40,8 +40,5 @@ export class ToggleSwitch extends Switch {
     }
 
   }*/
-  override applytoJson(json: Record<string, any>): void {
-    super.applytoJson(json)
-    json['negatedOutC'] = this.negatedOutC.connectedTo
-  }
+
 }

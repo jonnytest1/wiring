@@ -1,13 +1,10 @@
 
-
 import { Timer555Plan } from "./555timer"
 import { Battery } from './battery'
 import { Capacitor } from './capacator'
 import { CircuitSolver } from './computation/circuit-solver'
-import { ComputationMatrix } from './computation/computation-matrix'
 import { LED } from './led'
 import { Resistor } from './resistor'
-import { Capacitance } from './units/capacitance'
 import { Time } from './units/time'
 import { Wire } from './wire'
 describe("Timer555Plan", () => {
@@ -44,11 +41,9 @@ describe("Timer555Plan", () => {
         //debugger
 
 
-
-
-        const debugNodes = solver.log({ withImp: true })
+        const debugNodes = solver.log({ serialize: true })
         //debugger
-
+        debugger
         const capStep = capacitor.getTimeConstant(solver.powerSources[0].totalImpedance)
 
         const shortStep = capStep.dividedStep(10)

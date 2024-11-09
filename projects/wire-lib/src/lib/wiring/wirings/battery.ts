@@ -1,14 +1,14 @@
-import { v4 } from 'uuid';
 import { Collection } from './collection';
 import { Connection } from './connection';
 import type { RegisterOptions, REgistrationNode } from './interfaces/registration';
-import { noResistance } from './resistance-return';
-import type { CurrentCurrent, CurrentOption, GetResistanceOptions, ProcessCurrentOptions, ProcessCurrentReturn, ResistanceReturn, Wiring } from './wiring.a';
+
+import type { ProcessCurrentOptions, ProcessCurrentReturn } from './wiring.a';
 import { Impedance } from './units/impedance';
 import { Voltage } from './units/voltage';
 import { Current } from './units/current';
 import { Charge } from './units/charge';
 import { Time } from './units/time';
+import type { SerialiseOptinos } from '../wiring-serialisation.ts/serialisation-factory';
 
 export class Battery extends Collection {
 
@@ -132,24 +132,19 @@ export class Battery extends Collection {
      });
      return nodes;
    }*/
-  override toJSON(key?) {
+  override toJSON(o?: SerialiseOptinos) {
     //throw new Error("deprecated")
-    if (key == "connectedWire") {
-      return {
-        type: Battery.typeName,
-        ref: this.nodeUuid
-      }
-    } else if (key) {
+    if (o.fromConnection == this.inC) {
       return {
         type: Battery.typeName,
         ref: this.nodeUuid
       }
     }
+
     return {
       type: Battery.typeName,
-      prov: this.outC.connectedTo,
+      prov: o.serialise(this.outC),
       voltage: this.voltage,
-      nodeUuid: this.nodeUuid,
       ui: this.uiNode,
       enabled: this.enabled,
       chargePercent: this.remainingCharge.isFinite() ? this.getChargePercentage() : "Infinity",

@@ -3,7 +3,7 @@
         "type": "Battery",
         "prov": {
             "type": "Wire",
-            "connectedWire": {
+            "connectedTo": {
                 "type": "PiPico",
                 "uuid": "8faa3d99-bfe9-4746-bdf5-7608c722ec28",
                 "code": "from machine import Pin, Timer\nled = Pin(16, Pin.OUT)\ntimer = Timer()\ndef blink(timer):\n  led.toggle()\ntimer.init(1, Timer.PERIODIC, blink)",
@@ -15,12 +15,12 @@
                     "16": {
                         "connection": {
                             "type": "Wire",
-                            "connectedWire": {
+                            "connectedTo": {
                                 "type": "LED",
                                 "resistance": 5,
                                 "outC": {
                                     "type": "Wire",
-                                    "connectedWire": {
+                                    "connectedTo": {
                                         "type": "PiPico",
                                         "ref": "8faa3d99-bfe9-4746-bdf5-7608c722ec28",
                                         "pinConnection": 23
@@ -42,11 +42,15 @@
                     "id": 3,
                     "connection": {
                         "type": "Wire",
-                        "connectedWire": "BatteryRef"
+                        "connectedTo": {
+                            "type": "Battery",
+                            "ref": "db0sb2f1-2aec-4bsb-aa89-s37acsf"
+                        }
                     }
                 }
             }
         },
+        "uuid": "db0sb2f1-2aec-4bsb-aa89-s37acsf",
         "voltage": 5,
         "ui": {
             "y": 250,

@@ -1,4 +1,7 @@
 // NOSONAR
+
+import { serialise } from '../../wiring-serialisation.ts/serialisation';
+import type { SerialiseOptinos } from '../../wiring-serialisation.ts/serialisation-factory';
 import { Battery } from '../battery';
 import { Capacitor } from '../capacator';
 import { Connection } from '../connection';
@@ -46,21 +49,26 @@ export class CircuitSolver {
                 return {
                     source: s,
                     ground: s.inC!,
-                    breakOnInvalid: true
+                    breakOnInvalid: true,
+                    iterationMap: new Map()
                 } as PowerSource
             } else if (s instanceof Capacitor) {
                 needsGround = true
                 return {
                     source: s,
                     ground: null,
-                    breakOnInvalid: false
+                    breakOnInvalid: false,
+                    iterationMap: new Map()
 
                 }
             }
             if (!this.ground && s.ground) {
                 this.ground = s.ground
             }
-            return { breakOnInvalid: s.breakOnInvalid ?? true, ...s, };
+            return {
+                breakOnInvalid: s.breakOnInvalid ?? true, ...s,
+                iterationMap: new Map()
+            };
         })
 
 
@@ -276,6 +284,7 @@ export class CircuitSolver {
             this.mergeArrays(nodes, {
                 arrayMergeIds
             })
+
             source.invalidConfig = false
             if (nodes.length <= 1) {
                 source.invalidConfig = true
@@ -460,14 +469,80 @@ export class CircuitSolver {
 
 
 
-    log(o: { withImp?: boolean } = {}) {
+    log(o: { withImp?: boolean, serialize?: boolean } = {}) {
         const debugMap = this.powerSources
-            .filter(s => s.source.providedVoltage().isPositive())
-            .map(s => this.logMap(s.nodes, {
-                ...o, source: s
-            }))
+            .filter(s => s.source.providedVoltage().isPositive() || o.serialize)
+            .map(source => {
+                if (o.serialize) {
+                    if (!source.iterationMap.size) {
+                        this.fillIterationNEtwork(source, source.nodes)
+                    }
+
+                    const optinos: Omit<SerialiseOptinos, "nodeObj"> = {
+                        fromConnection: null,
+                        refs(con: Connection) {
+
+                            return {
+                                type: "Wire",
+                                ref: con.connectedTo.nodeUuid,
+                                conectionId: con.id
+                            };
+                        },
+                        serialiseWire(con) {
+                            const connection = source.iterationMap.get(con)
+
+                            return connection
+                                .filter(con => con.parent)
+                                .map(con => {
+                                    return serialise(con.parent, { ...optinos, fromConnection: con });
+                                })
+                        },
+                        serialise: (obj: Connection) => {
+                            let wiring: Wiring = obj.connectedTo
+                            if (!wiring) {
+                                return undefined
+                            }
+                            return serialise(wiring, { ...optinos, fromConnection: obj });
+                        },
+                    };
+                    const data = serialise(source.source, optinos)
+
+                    return data
+                }
+
+
+                return this.logMap(source.nodes, {
+                    ...o,
+                    source: source
+                });
+            })
         console.log(debugMap)
         return debugMap
+    }
+    fillIterationNEtwork(source: PowerSource, nodes: Array<REgistrationNode>, opts: {
+        lastNode?: REgistrationNode
+    } = {}) {
+
+        for (let i = 0; i < nodes.length; i++) {
+            const currentNode = nodes[i]
+
+            if (currentNode instanceof Array) {
+
+                for (let lane of currentNode) {
+                    this.fillIterationNEtwork(source, lane, { ...opts })
+                }
+            } else {
+                if (currentNode.connection) {
+                    let ar = source.iterationMap.get(currentNode.connection.connectedTo)
+                    if (!ar) {
+                        ar = []
+                        source.iterationMap.set(currentNode.connection.connectedTo, ar)
+                    }
+                    ar.push(currentNode.connection)
+                }
+            }
+        }
+
     }
 
 
@@ -476,6 +551,9 @@ export class CircuitSolver {
 
         return nodes.map(node => {
             if (node instanceof Array) {
+
+
+                let wire: Wire
                 let nodes = node.map(s => {
                     const subNodes = this.logMap(s, o);
                     if (o.withImp) {
@@ -489,9 +567,11 @@ export class CircuitSolver {
                     return subNodes;
                 })
 
+
                 return nodes
             } else {
                 let name = node.node.name ?? (node.node.constructor as IndexableConstructor).typeName;
+
                 if (o.withImp) {
 
                     const vS = this.computed.getPowerSource(o.source.source);
@@ -500,6 +580,10 @@ export class CircuitSolver {
 
                     name += ":" + label?.resistance?.impedance
                 }
+
+
+
+
 
                 return name
             }

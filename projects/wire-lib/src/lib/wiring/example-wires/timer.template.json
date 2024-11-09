@@ -1,0 +1,309 @@
+[
+    {
+        "type": "Battery",
+        "uuid": "786c2cbd-6a62-47a6-b842-7f924844ee5d",
+        "prov": {
+            "type": "Wire",
+            "uuid": "ff50e7b2-12f8-4ebb-b14d-ed9c3fe270e9",
+            "connectedTo": [
+                {
+                    "type": "Resistor",
+                    "uuid": "1361c743-ae5d-4c9e-8115-c7448cd4446f",
+                    "resistance": 1000,
+                    "outC": {
+                        "type": "Wire",
+                        "uuid": "d6b66fd8-6ca1-40b4-9985-75a46bf88d4b",
+                        "connectedTo": [
+                            {
+                                "type": "Resistor",
+                                "uuid": "f4224c84-4d35-4156-8d51-9bf2d913146e",
+                                "resistance": 100000,
+                                "outC": {
+                                    "type": "Wire",
+                                    "uuid": "2e8720eb-9431-422c-8dac-443b6df324e6",
+                                    "connectedTo": [
+                                        {
+                                            "type": "Comparator",
+                                            "uuid": "abdf0b08-58e7-49ad-9034-9c223f9b0801",
+                                            "ref": "2e8720eb-9431-422c-8dac-443b6df324e6",
+                                            "conectionId": "comparator_pos"
+                                        },
+                                        {
+                                            "type": "Comparator",
+                                            "uuid": "359accc0-3494-49d0-9c97-baf6e384ca6a",
+                                            "ref": "2e8720eb-9431-422c-8dac-443b6df324e6",
+                                            "conectionId": "comparator_neg"
+                                        },
+                                        {
+                                            "type": "Capacitor",
+                                            "uuid": "29cd30c6-a402-48d4-9ee9-3d8386cd0616",
+                                            "capacitance": 0.000001
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "type": "Transistor",
+                                "uuid": "b647a9e4-58b6-48bd-a7a8-f4f43dd35f04",
+                                "emitter": {
+                                    "type": "Wire",
+                                    "uuid": "b803b99d-b532-4fc3-9611-f799b16d60ad",
+                                    "connectedTo": [
+                                        {
+                                            "type": "Battery",
+                                            "uuid": "786c2cbd-6a62-47a6-b842-7f924844ee5d",
+                                            "ref": "786c2cbd-6a62-47a6-b842-7f924844ee5d"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "Resistor",
+                    "uuid": "ab86f6ac-032a-44af-8338-2e9e9998b35c",
+                    "resistance": 5,
+                    "outC": {
+                        "type": "Wire",
+                        "uuid": "e7ff20c0-6186-42c1-a424-6fcc67e7beec",
+                        "connectedTo": [
+                            {
+                                "type": "Resistor",
+                                "uuid": "34916fc6-7287-485c-991c-684809f016bc",
+                                "resistance": 5,
+                                "outC": {
+                                    "type": "Wire",
+                                    "uuid": "b10bd9b3-4299-480c-bf43-7d03a16c2723",
+                                    "connectedTo": [
+                                        {
+                                            "type": "Comparator",
+                                            "uuid": "359accc0-3494-49d0-9c97-baf6e384ca6a",
+                                            "ref": "b10bd9b3-4299-480c-bf43-7d03a16c2723",
+                                            "conectionId": "comparator_pos"
+                                        },
+                                        {
+                                            "type": "Resistor",
+                                            "uuid": "666a7807-350b-40fc-b073-8247c8d04d3a",
+                                            "resistance": 5,
+                                            "outC": {
+                                                "type": "Wire",
+                                                "uuid": "b803b99d-b532-4fc3-9611-f799b16d60ad",
+                                                "connectedTo": [
+                                                    {
+                                                        "type": "Battery",
+                                                        "uuid": "786c2cbd-6a62-47a6-b842-7f924844ee5d",
+                                                        "ref": "786c2cbd-6a62-47a6-b842-7f924844ee5d"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "type": "Comparator",
+                                "uuid": "abdf0b08-58e7-49ad-9034-9c223f9b0801",
+                                "ref": "e7ff20c0-6186-42c1-a424-6fcc67e7beec",
+                                "conectionId": "comparator_neg"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "Comparator",
+                    "uuid": "abdf0b08-58e7-49ad-9034-9c223f9b0801",
+                    "vOut": {
+                        "type": "Wire",
+                        "uuid": "0e908591-b8c9-4d05-9e32-560628896c8d",
+                        "connectedTo": [
+                            {
+                                "type": "OrGate",
+                                "uuid": "8f35197d-898c-4661-bb94-cd905c119ff3",
+                                "ref": "0e908591-b8c9-4d05-9e32-560628896c8d",
+                                "conectionId": "or_inA"
+                            }
+                        ]
+                    },
+                    "ground": {
+                        "type": "Wire",
+                        "uuid": "b803b99d-b532-4fc3-9611-f799b16d60ad",
+                        "connectedTo": [
+                            {
+                                "type": "Battery",
+                                "uuid": "786c2cbd-6a62-47a6-b842-7f924844ee5d",
+                                "ref": "786c2cbd-6a62-47a6-b842-7f924844ee5d"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "Comparator",
+                    "uuid": "359accc0-3494-49d0-9c97-baf6e384ca6a",
+                    "vOut": {
+                        "type": "Wire",
+                        "uuid": "dcf84036-74d3-4333-ba49-e28d886db173",
+                        "connectedTo": [
+                            {
+                                "type": "OrGate",
+                                "uuid": "febe834d-9619-40ef-a564-84bf08dc6b41",
+                                "ref": "dcf84036-74d3-4333-ba49-e28d886db173",
+                                "conectionId": "or_inB"
+                            }
+                        ]
+                    },
+                    "ground": {
+                        "type": "Wire",
+                        "uuid": "b803b99d-b532-4fc3-9611-f799b16d60ad",
+                        "connectedTo": [
+                            {
+                                "type": "Battery",
+                                "uuid": "786c2cbd-6a62-47a6-b842-7f924844ee5d",
+                                "ref": "786c2cbd-6a62-47a6-b842-7f924844ee5d"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "OrGate",
+                    "uuid": "8f35197d-898c-4661-bb94-cd905c119ff3",
+                    "out": {
+                        "type": "Wire",
+                        "uuid": "fed8f176-3bac-4c24-be1f-dfd80d1c3a3a",
+                        "connectedTo": [
+                            {
+                                "type": "NotGate",
+                                "uuid": "b898b7d3-592f-40dd-bb82-d480c2993b8b",
+                                "ref": "fed8f176-3bac-4c24-be1f-dfd80d1c3a3a",
+                                "conectionId": "not_in"
+                            }
+                        ]
+                    },
+                    "gnd": {
+                        "type": "Wire",
+                        "uuid": "b803b99d-b532-4fc3-9611-f799b16d60ad",
+                        "connectedTo": [
+                            {
+                                "type": "Battery",
+                                "uuid": "786c2cbd-6a62-47a6-b842-7f924844ee5d",
+                                "ref": "786c2cbd-6a62-47a6-b842-7f924844ee5d"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "NotGate",
+                    "uuid": "b898b7d3-592f-40dd-bb82-d480c2993b8b",
+                    "inverted_out": {
+                        "type": "Wire",
+                        "uuid": "37c9686a-8474-4af1-9c3e-97aed0160089",
+                        "connectedTo": [
+                            {
+                                "type": "OrGate",
+                                "uuid": "febe834d-9619-40ef-a564-84bf08dc6b41",
+                                "ref": "37c9686a-8474-4af1-9c3e-97aed0160089",
+                                "conectionId": "or_inA"
+                            },
+                            {
+                                "type": "LED",
+                                "uuid": "f1fabf9e-b8a0-485f-9c17-ad89dbd81f80",
+                                "resistance": 5,
+                                "outC": {
+                                    "type": "Wire",
+                                    "uuid": "b803b99d-b532-4fc3-9611-f799b16d60ad",
+                                    "connectedTo": [
+                                        {
+                                            "type": "Battery",
+                                            "uuid": "786c2cbd-6a62-47a6-b842-7f924844ee5d",
+                                            "ref": "786c2cbd-6a62-47a6-b842-7f924844ee5d"
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "gnd": {
+                        "type": "Wire",
+                        "uuid": "b803b99d-b532-4fc3-9611-f799b16d60ad",
+                        "connectedTo": [
+                            {
+                                "type": "Battery",
+                                "uuid": "786c2cbd-6a62-47a6-b842-7f924844ee5d",
+                                "ref": "786c2cbd-6a62-47a6-b842-7f924844ee5d"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "OrGate",
+                    "uuid": "febe834d-9619-40ef-a564-84bf08dc6b41",
+                    "out": {
+                        "type": "Wire",
+                        "uuid": "aae65529-fe65-42b3-9302-3358c6353de0",
+                        "connectedTo": [
+                            {
+                                "type": "NotGate",
+                                "uuid": "44be4a15-f125-47e8-ab97-cb4cb1ba7f78",
+                                "ref": "aae65529-fe65-42b3-9302-3358c6353de0",
+                                "conectionId": "not_in"
+                            }
+                        ]
+                    },
+                    "gnd": {
+                        "type": "Wire",
+                        "uuid": "b803b99d-b532-4fc3-9611-f799b16d60ad",
+                        "connectedTo": [
+                            {
+                                "type": "Battery",
+                                "uuid": "786c2cbd-6a62-47a6-b842-7f924844ee5d",
+                                "ref": "786c2cbd-6a62-47a6-b842-7f924844ee5d"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "NotGate",
+                    "uuid": "44be4a15-f125-47e8-ab97-cb4cb1ba7f78",
+                    "inverted_out": {
+                        "type": "Wire",
+                        "uuid": "a40f25d8-63a6-4d5e-92f1-5935fcb86540",
+                        "connectedTo": [
+                            {
+                                "type": "Transistor",
+                                "uuid": "b647a9e4-58b6-48bd-a7a8-f4f43dd35f04",
+                                "ref": "a40f25d8-63a6-4d5e-92f1-5935fcb86540",
+                                "conectionId": "tr_base"
+                            },
+                            {
+                                "type": "OrGate",
+                                "uuid": "8f35197d-898c-4661-bb94-cd905c119ff3",
+                                "ref": "a40f25d8-63a6-4d5e-92f1-5935fcb86540",
+                                "conectionId": "or_inB"
+                            }
+                        ]
+                    },
+                    "gnd": {
+                        "type": "Wire",
+                        "uuid": "b803b99d-b532-4fc3-9611-f799b16d60ad",
+                        "connectedTo": [
+                            {
+                                "type": "Battery",
+                                "uuid": "786c2cbd-6a62-47a6-b842-7f924844ee5d",
+                                "ref": "786c2cbd-6a62-47a6-b842-7f924844ee5d"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "voltage": 5,
+        "enabled": true,
+        "chargePercent": "Infinity",
+        "maxAmpere": "Infinity"
+    },
+    {
+        "type": "Capacitor",
+        "uuid": "29cd30c6-a402-48d4-9ee9-3d8386cd0616",
+        "capacitance": 0.000001
+    }
+]

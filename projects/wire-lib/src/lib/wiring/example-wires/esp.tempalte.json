@@ -16,11 +16,15 @@
                     "id": 9,
                     "connection": {
                         "type": "Wire",
-                        "connectedWire": "BatteryRef"
+                        "connectedWire": {
+                            "type": "Battery",
+                            "ref": "db0sb2f1-2aec-4bsb-aa89-s37acsf"
+                        }
                     }
                 }
             }
         },
+        "uuid": "db0sb2f1-2aec-4bsb-aa89-s37acsf",
         "voltage": 5,
         "ui": {
             "y": 450,

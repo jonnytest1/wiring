@@ -36,22 +36,26 @@ const serialisations = [
     DefaultSerializer.for({
         constructor: OrGate,
         names: ["out", "gnd"],
-        refnames: ["inA", "inB"]
+        refnames: ["inA", "inB"],
+        in: "vcc"
     }),
     DefaultSerializer.for({
         constructor: Comparator,
         names: ["vOut", 'ground'],
-        refnames: ['negative', "positive"]
+        refnames: ['negative', "positive"],
+        in: "vcc"
     }),
     DefaultSerializer.for({
         constructor: Transistor,
         names: ["emitter"],
-        refnames: ["base"]
+        refnames: ["base"],
+        in: "collector"
     }),
     DefaultSerializer.for({
         constructor: NotGate,
         names: ["inverted_out", 'gnd'],
-        refnames: ['in',]
+        refnames: ['in'],
+        in: "vcc"
     })
 
 ] as const satisfies Array<new () => SerialisationFactory<Wiring>>

@@ -2,16 +2,16 @@ import { Collection } from './collection';
 import { Connection } from './connection';
 import { EULER } from './constant';
 import type { RegisterOptions, REgistrationNode } from './interfaces/registration';
-import { noConnection, noResistance } from './resistance-return';
+import type { PowerSupply } from './power-suppyly';
 import { Capacitance } from './units/capacitance';
 import { Charge } from './units/charge';
 import { Current } from './units/current';
 import { Impedance } from './units/impedance';
 import { Time } from './units/time';
 import { Voltage } from './units/voltage';
-import { type GetResistanceOptions, type ResistanceReturn, type CurrentCurrent, type CurrentOption, defaultGetResistanceOpts, Wiring, type GetImpedanceContext, type ProcessCurrentOptions, type ProcessCurrentReturn } from './wiring.a';
+import { Wiring, type GetImpedanceContext, type ProcessCurrentOptions, type ProcessCurrentReturn } from './wiring.a';
 
-export class Capacitor extends Wiring {
+export class Capacitor extends Wiring implements PowerSupply {
 
     static readonly typeName = "Capacitor"
 
@@ -53,6 +53,25 @@ export class Capacitor extends Wiring {
 
         this.maxVoltage = new Voltage(maxVoltage)
 
+    }
+    get currentCurrent(): Current {
+        return this.lastCurrent
+    }
+
+    getInfo() {
+        return `${this.isCharging() ? "charging" : ""}`
+    }
+
+
+    getProjectedDuration(): Time {
+        if (this.isCharging()) {
+            return new Time(Infinity)
+
+        }
+        return this.getTimeConstant().dividedStep(1 / 5)
+    }
+    get remainingCharge(): Charge {
+        return this.charge
     }
 
     getTimeConstant(resistance = this.defaultREsistance) {
@@ -103,14 +122,14 @@ export class Capacitor extends Wiring {
         //if (opts.checkTime === this.reverseResistanceCheckTime) {
         //    return noConnection(this)
         //}
-
+        if (this.charge.isZero()) {
+            return this.defaultREsistance
+        }
         if (this.getVoltage() >= this.supplyVoltage) {
             return new Impedance(NaN)
         }
 
-        if (this.charge.isZero()) {
-            return this.defaultREsistance
-        }
+
         const impedance = Impedance.fromVoltages(this.maxVoltage, this.getVoltage())
 
         //console.log(impedance.impedance)

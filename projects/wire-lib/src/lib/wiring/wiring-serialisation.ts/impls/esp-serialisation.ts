@@ -43,7 +43,8 @@ export class Esp32Serial extends SerialisationFactory<Esp32> {
                 con.mode = conenctionJson.mode
                 con.outputValue = conenctionJson.outputValue
                 const endWire = options.loadElement(conenctionJson.connection, { ...options, inC: con.con })
-                endWire.wire.connect(esp.pinMap[this.jsonRefPinId].con)
+                debugger
+                //endWire.wire.connect(esp.pinMap[this.jsonRefPinId].con)
             }
             const batteryDef = json.batteryCon
             const batteryConnection = esp.pinMap[batteryDef.id].con

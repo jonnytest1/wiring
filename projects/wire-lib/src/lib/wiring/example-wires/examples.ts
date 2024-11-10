@@ -4,6 +4,7 @@ import pico from "./pico.template.json"
 import esp from "./esp.tempalte.json"
 import relay from "./relay.template.json"
 import transformator from "./transformator.template.json"
+import timer from "./timer.template.json"
 
 
 export const examples = [
@@ -23,6 +24,9 @@ export const examples = [
     }, {
         name: "esp demo",
         content: JSON.stringify(esp)
+    }, {
+        name: "555",
+        content: JSON.stringify(timer)
     },
 ]
 

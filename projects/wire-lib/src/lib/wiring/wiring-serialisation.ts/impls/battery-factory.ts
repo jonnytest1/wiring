@@ -1,10 +1,18 @@
 import { JsonSerializer, type FromJsonOptions } from '../../serialisation';
 import { Battery } from '../../wirings/battery';
 import { Charge } from '../../wirings/units/charge';
+import type { Wire } from '../../wirings/wire';
 import { SerialisationFactory } from '../serialisation-factory';
 
 export class BatteryFactory extends SerialisationFactory<Battery> {
     override factory = Battery;
+
+
+    connectedWires: Set<Wire> = new Set()
+
+    override init(): void {
+        this.connectedWires = new Set()
+    }
 
     map = this.json({
         deprecated(p: {
@@ -15,7 +23,18 @@ export class BatteryFactory extends SerialisationFactory<Battery> {
         toJSON: (obj, o) => {
             return obj.toJSON(o)
         },
-        initFromJson(fromJSON) {
+        initFromJson(fromJSON, options) {
+
+            if ("ref" in fromJSON) {
+                return options.withReference<Battery>(fromJSON.ref, obj => {
+                    if (obj.inC.connectedTo !== options.wire) {
+                        options.wire.connect(obj.inC);
+                    }
+
+                })
+
+            }
+
             if (fromJSON.charge == "Infinity") {
                 fromJSON.charge = Infinity
             }
@@ -37,11 +56,11 @@ export class BatteryFactory extends SerialisationFactory<Battery> {
         applyFromJSON: (battery, fromJSON, options: FromJsonOptions) => {
 
             if ("ref" in fromJSON) {
-                const targetBattery = options.references[fromJSON.ref]
-                return {
-                    node: targetBattery,
-                    wire: options.wire
-                }
+                // return {
+                // node: targetBattery,
+                //  wire: options.wire
+                // }
+                return
 
             }
             battery.enabled = fromJSON.enabled;
@@ -53,9 +72,6 @@ export class BatteryFactory extends SerialisationFactory<Battery> {
                     ...options,
                     inC: battery.outC,
                 });
-                if (outC) {
-                    outC.wire.connect(battery.inC);
-                }
 
             } else {
                 throw new Error('missing serialisation for ' + prov);

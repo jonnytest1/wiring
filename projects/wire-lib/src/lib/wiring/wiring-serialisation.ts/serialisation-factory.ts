@@ -3,13 +3,14 @@ import type { Connection } from '../wirings/connection';
 import type { PowerSource } from '../wirings/interfaces/registration';
 import type { Wire } from '../wirings/wire';
 import type { Indexable, Wiring } from '../wirings/wiring.a';
+import type { ReferenceCall } from './ref-call';
 
 export type SerialisationReturn<T extends Wiring> = {
     node: T;
     wire: Wire;
 };
 
-export type JsonSerialisationtype = { type: string, uuid?: string }
+export type JsonSerialisationtype = { type: string, uuid?: string, name?: string }
 
 export type UISerialize = {
     ui: {
@@ -51,10 +52,18 @@ export interface JsonFnc<T extends Wiring, S extends Partial<UISerialize> & Part
 
     toJSON: (obj: T, options: SerialiseOptinos) => S;
 
-    initFromJson(fromJSON: (NoInfer<S> & UISerialize & JsonSerialisationtype & DeprecatedProps), options: FromJsonOptions<T>): Omit<SerialisationReturn<T>, "wire">
+    initFromJson(
+        fromJSON: (NoInfer<S> & UISerialize & JsonSerialisationtype & DeprecatedProps),
+        options: FromJsonOptions<T>
+    )
+        : Omit<SerialisationReturn<T>, "wire"> | ReferenceCall
 
 
-    applyFromJSON(obj: T, fromJSON: (NoInfer<S> & UISerialize & JsonSerialisationtype & DeprecatedProps), options: FromJsonOptions<T>): void | Omit<SerialisationReturn<T>, "node">;
+    applyFromJSON(
+        obj: T,
+        fromJSON: (NoInfer<S> & UISerialize & JsonSerialisationtype & DeprecatedProps),
+        options: FromJsonOptions<T>
+    ): void | Omit<SerialisationReturn<T>, "node">;
 
 
 

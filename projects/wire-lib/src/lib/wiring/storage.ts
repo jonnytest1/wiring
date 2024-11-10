@@ -7,6 +7,8 @@ import { wiringJsonStringify, type FromJson, type FromJsonOptions } from './seri
 import { Battery } from './wirings/battery';
 import { Wire } from './wirings/wire';
 import { deserialize, startDeserialize } from './wiring-serialisation.ts/main-deserialisation';
+import type { Wiring } from './wirings/wiring.a';
+import type { PowerSupply } from './wirings/power-suppyly';
 
 
 export const templateService = new InjectionToken<() => Promise<Array<{ name: string, content: string }>>>("loadtemplates")
@@ -37,7 +39,7 @@ export class LocalStorageSerialization {
     localStorage.setItem('el_network', json);
     console.log(json);
   }
-  async load(options: Partial<FromJsonOptions & { remote: boolean }>): Promise<Array<Battery>> {
+  async load(options: Partial<FromJsonOptions & { remote: boolean }>): Promise<Array<PowerSupply>> {
     let parsed;
     if (options.remote) {
       const jsonStrings = await this.getTemplates();
@@ -66,7 +68,7 @@ export class LocalStorageSerialization {
 
   }
 
-  public parseJson(parsed: Array<any>, options: Partial<FromJsonOptions>): Array<Battery> {
+  public async parseJson(parsed: Array<any>, options: Partial<FromJsonOptions>): Promise<PowerSupply[]> {
     const controlRegfs = {};
     const controllerRefs: Record<string, { setControlRef: (controlRef, uuid: string) => void; }> = {};
 
@@ -83,18 +85,18 @@ export class LocalStorageSerialization {
       options.uiSerialisationMap.set(nodeConstructor, t)
     });
 
-
-    const batteries = parsed.map(obj => startDeserialize<Battery>(obj, {
+    const powerSupplies = startDeserialize<PowerSupply>(parsed, {
       ...options,
       // controlRefs: controlRegfs,
       constorlRefsInitialized: controlRefsinitialized.prRef,
       // controllerRefs: controllerRefs,
-      loadElement: deserialize,
-      references: {}
-    }).node);
-
-
-
+      loadElement: deserialize as (json, context: FromJsonOptions<Wiring>) => Promise<Wiring>,
+      references: {},
+      withReference(uuid) {
+        throw new Error("overwrite locally")
+      },
+      callbacks: {}
+    })
 
     Object.keys(controllerRefs).forEach(key => {
       const controller = controllerRefs[key];
@@ -105,6 +107,6 @@ export class LocalStorageSerialization {
     });
 
     controlRefsinitialized.resolve();
-    return batteries;
+    return powerSupplies;
   }
 }

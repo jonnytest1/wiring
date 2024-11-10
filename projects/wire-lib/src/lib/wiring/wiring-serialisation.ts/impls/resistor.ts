@@ -34,11 +34,11 @@ export class ResistorSerial extends SerialisationFactory<Resistor> {
             const connected = context.loadElement(json.outC, { ...context, inC: obj.outC })
 
 
-            return {
-                ...connected,
-                node: null
-            }
-
+            /*  return {
+                  ...connected,
+                  node: null
+              }
+  */
 
         },
 

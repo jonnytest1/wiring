@@ -481,11 +481,10 @@ export class CircuitSolver {
                     const optinos: Omit<SerialiseOptinos, "nodeObj"> = {
                         fromConnection: null,
                         refs(con: Connection) {
-
                             return {
-                                type: "Wire",
-                                ref: con.connectedTo.nodeUuid,
-                                conectionId: con.id
+                                type: "",
+                                ref: con.parent.nodeUuid,
+                                connectionId: con.id
                             };
                         },
                         serialiseWire(con) {

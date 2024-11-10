@@ -29,11 +29,12 @@ export class ToggleSwitchSerialisation extends SerialisationFactory.of(ToggleSwi
         applyFromJSON(obj, json, context) {
             debugger
             const connected = context.loadElement(json.outC, { ...context, inC: json.outC })
+            debugger
             if (json.negatedOutC) {
                 context.loadElement(json.negatedOutC, { ...context, inC: json.negatedOutC })
             }
             //
-            return { ...connected, node: self }
+            // return { ...connected, node: self }
 
         },
     })

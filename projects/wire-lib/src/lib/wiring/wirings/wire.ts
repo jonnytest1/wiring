@@ -10,6 +10,8 @@ export class Wire extends Wiring {
 
   static typeName = "Wire"
 
+  skipped = false
+
   connections: Array<Connection> = []
   constructor(inConnection?: Connection) {
     super()

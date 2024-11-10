@@ -1,23 +1,24 @@
 
-import { ComponentRef, DestroyRef, Directive, inject, InjectionToken, Injector, TemplateRef, ViewChild } from '@angular/core';
+import { DestroyRef, Directive, inject, InjectionToken, Injector, TemplateRef, ViewChild } from '@angular/core';
 
 import type { Vector2 } from '../util/vector';
-import type { Collection } from '../wirings/collection';
+import { Collection } from '../wirings/collection';
 import type { Wire } from '../wirings/wire';
 import { InOutComponent } from './in-out/in-out.component';
 import type { MatSnackBarRef } from '@angular/material/snack-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
-import { interval, takeUntil, takeWhile, timer } from 'rxjs';
+import { takeWhile } from 'rxjs';
 import type { WireQueryParams } from '../wire-query-params';
 import { TypedEventEmitter } from '../util/typed-event-emitter';
+import type { Wiring } from '../wirings/wiring.a';
 
 
 export const existingNodeToken = new InjectionToken<Collection>("existing node");
 
 
 @Directive()
-export abstract class UINode<T extends Collection = Collection> extends TypedEventEmitter<{ afterViewInit: void }> {
+export abstract class UINode<T extends Wiring = Wiring> extends TypedEventEmitter<{ afterViewInit: void }> {
 
   private position: Vector2;
 
@@ -96,14 +97,17 @@ export abstract class UINode<T extends Collection = Collection> extends TypedEve
     return this.getWiresforNode(this.node);
   }
 
-  getWiresforNode(col: Collection) {
+  getWiresforNode(col: Wiring) {
     const wires: Array<Wire> = [];
-    if (col?.inC?.connectedTo) {
-      wires.push(col?.inC?.connectedTo);
+    if (col instanceof Collection) {
+      if (col?.inC?.connectedTo) {
+        wires.push(col?.inC?.connectedTo);
+      }
+      if (col?.outC?.connectedTo) {
+        wires.push(col?.outC?.connectedTo);
+      }
     }
-    if (col?.outC?.connectedTo) {
-      wires.push(col?.outC?.connectedTo);
-    }
+
     return wires;
   }
 
@@ -141,4 +145,14 @@ export abstract class UINode<T extends Collection = Collection> extends TypedEve
     }
   }
 
+
+
+  static of<T extends Wiring>(cnstructor: (new (...args) => T)) {
+    abstract class TempScoped extends UINode<T> {
+      override factory(): new (...args: any[]) => T {
+        return cnstructor
+      }
+    }
+    return TempScoped
+  }
 }

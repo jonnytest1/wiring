@@ -32,8 +32,9 @@ export class SwitchFactory extends SerialisationFactory.of(Switch) {
             if (json.negatedOutC) {
                 context.loadElement(json.negatedOutC, { ...context, inC: json.negatedOutC })
             }
+            debugger
             //
-            return { ...connected, node: self }
+            // return { ...connected, node: self }
 
         },
     })

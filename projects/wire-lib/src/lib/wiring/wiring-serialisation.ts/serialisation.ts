@@ -27,7 +27,9 @@ export function serialise<T extends Wiring>(obj: T, options: Omit<SerialiseOptin
     if (obj.nodeUuid) {
         nodeObj.uuid = obj.nodeUuid
     }
-
+    if (obj.name) {
+        nodeObj.name = obj.name
+    }
     const copy = {
         ...nodeObj
     }

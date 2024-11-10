@@ -9,8 +9,9 @@ import { Current } from './units/current';
 import { Charge } from './units/charge';
 import { Time } from './units/time';
 import type { SerialiseOptinos } from '../wiring-serialisation.ts/serialisation-factory';
+import type { PowerSupply } from './power-suppyly';
 
-export class Battery extends Collection {
+export class Battery extends Collection implements PowerSupply {
 
 
 
@@ -83,6 +84,10 @@ export class Battery extends Collection {
   }
 
   getChargePercentage() {
+    if (!this.remainingCharge.isFinite()) {
+      return 1
+    }
+
     return this.remainingCharge.coulomb / this.maxCharge.coulomb
   }
 

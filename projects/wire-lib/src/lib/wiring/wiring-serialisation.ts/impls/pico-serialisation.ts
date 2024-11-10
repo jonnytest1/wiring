@@ -60,11 +60,11 @@ export class PicoSerialisation extends SerialisationFactory<PiPico> {
             const batteryDef = json.batteryCon
             const batteryConnection = piPico.pinMap[batteryDef.id].con
 
-
-            return {
-                ...context.loadElement(batteryDef.connection, { ...context, inC: batteryConnection }),
+            context.loadElement(batteryDef.connection, { ...context, inC: batteryConnection })
+            /*return {
+                ...,
                 node: piPico
-            }
+            }*/
         },
     })
 

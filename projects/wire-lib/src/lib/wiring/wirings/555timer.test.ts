@@ -116,12 +116,12 @@ describe("Timer555Plan", () => {
 
 
         let t = new Time(0)
-        const charginSTeps: Array<boolean> = []
+        const charginSTeps: Array<any> = []
 
         while (t.seconds < 1000000) {
             t.step(shortStep)
             solver.check(shortStep)
-            charginSTeps.push(capacitor.isCharging())
+            charginSTeps.push([capacitor.isCharging(), capacitor.charge.coulomb])
         }
         debugger
 

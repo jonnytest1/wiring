@@ -41,10 +41,10 @@
 
     <p class="batterydisplay">
       <span *ngFor="let bat of batteries">
-        battery capacity {{getRemainingBattery(bat)}} <br>
+        {{batteryType(bat)}} capacity {{getRemainingBattery(bat)}} <br>
         drain at {{bat.currentCurrent?.current}}A <br>
         duraiton : {{ bat.getProjectedDuration().seconds }} seconds <br>
-
+        <span *ngIf="bat.getInfo">{{bat.getInfo()}}</span>
       </span>
     </p>
 

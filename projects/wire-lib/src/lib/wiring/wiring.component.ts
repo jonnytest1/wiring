@@ -5,7 +5,7 @@ import { Vector2 } from './util/vector';
 import { BatteryUiComponent } from './wiring-ui/battery-ui/battery-ui.component';
 import type { UINode } from './wiring-ui/ui-node';
 import { WiringDataService } from './wiring.service';
-import type { Battery } from './wirings/battery';
+import { Battery } from './wirings/battery';
 import type { StrucureReturn } from './wirings/control-collection.a';
 import type { LED } from './wirings/led';
 import type { Resistor } from './wirings/resistor';
@@ -15,6 +15,9 @@ import { NODE_TEMPLATES } from './node-templates';
 import { createStateMachine } from '../utils/state-machine';
 import { CircuitSolver } from './wirings/computation/circuit-solver';
 import { Time } from './wirings/units/time';
+import type { PowerSupply } from './wirings/power-suppyly';
+import type { IndexableConstructor } from './wirings/wiring.a';
+import { Capacitor } from './wirings/capacator';
 
 export interface NodeTemplate {
 
@@ -36,7 +39,7 @@ export interface NodeEl {
 })
 export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
 
-  batteries: Battery[];
+  batteries: PowerSupply[];
   solver: CircuitSolver;
 
 
@@ -55,6 +58,8 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
 
   nodes: Array<NodeEl> = [];
   currentWireCache: string;
+
+  speedMultiplier = 0.000003
 
 
   @ViewChild("sidenavcontent", { read: ElementRef })
@@ -75,6 +80,9 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     }
   }>()
 
+
+  ct = 0
+
   constructor(
     private readonly cdr: ChangeDetectorRef,
     private readonly viewRef: ViewContainerRef,
@@ -93,23 +101,7 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     const example = url.searchParams.get("template")
 
     if (example) {
-      this.serialize.load({
-        remote: true,
-        viewRef: () => this.viewinsert,
-        displayNodes: this.nodes,
-        injectorFactory: () => this.viewRef.injector,
-        templateName: example
-      }).then(bats => {
-        this.batteries.push(...bats)
-
-        this.solver = new CircuitSolver(...this.batteries)
-
-        if (url.searchParams.has("enablebatteries")) {
-          bats.forEach(bat => {
-            bat.enabled = true
-          })
-        }
-      })
+      this.preloadExample(example, url);
     }
 
     this.interval = setInterval(() => {
@@ -145,6 +137,30 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
       this.solver?.invalidate()
     })
   }
+  private preloadExample(example: string, url: URL) {
+    this.serialize.load({
+      remote: true,
+      viewRef: () => this.viewinsert,
+      displayNodes: this.nodes,
+      injectorFactory: () => this.viewRef.injector,
+      templateName: example
+    }).then(bats => {
+      this.batteries.push(...bats);
+
+      this.solver = new CircuitSolver(...this.batteries as Array<Battery>);
+
+      if (url.searchParams.has("enablebatteries")) {
+
+        bats.forEach(bat => {
+          if (bat instanceof Battery) {
+            bat.enabled = true;
+          }
+
+        });
+      }
+    });
+  }
+
   preloadImages() {
     for (const image of ['assets/icons/relay_right.png', 'assets/icons/pipico.png']) {
       const img = new Image();
@@ -153,7 +169,7 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
   }
 
   storeToLocal() {
-    this.serialize.storeToLocal(this.batteries);
+    this.serialize.storeToLocal(this.batteries as Array<Battery>);
   }
   async load(remote = false) {
 
@@ -170,7 +186,9 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     this.nodes.forEach(node => {
       const nodeWires = node.uiInstance.getWires();
       nodeWires.forEach(wire => {
-        wires.add(wire);
+        if (!wire.skipped) {
+          wires.add(wire);
+        }
       });
     });
     return wires;
@@ -204,8 +222,12 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     clearInterval(this.interval);
   }
 
-  getRemainingBattery(bat: Battery) {
+  getRemainingBattery(bat: PowerSupply) {
     return bat.remainingCharge.coulomb;
+  }
+
+  batteryType(bat: PowerSupply) {
+    return (bat.constructor as IndexableConstructor).typeName
   }
 
   dragMove(event: MouseEvent) {
@@ -265,24 +287,51 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
   private refreshSolver() {
     this.solver = new CircuitSolver(...this.batteries.map(bat => ({
       source: bat,
-      ground: bat.inC,
+      ground: (bat as Battery).inC,
       breakOnInvalid: false
     })));
   }
 
+
+
+
   ngAfterContentChecked(): void {
-    const now = Date.now();
-    if (!this.lastTime) {
-      this.lastTime = now;
-      return;
-    }
-    const delta = now - this.lastTime;
-    this.lastTime = now;
-    this.solver?.invalidate()
-    this.solver?.check(new Time(delta / 1000))
+
   }
 
   ngOnInit() {
+
+    const draw = () => {
+      const now = Date.now();
+      if (!this.lastTime) {
+        this.lastTime = now;
+        requestAnimationFrame(draw)
+        return;
+      }
+      let delta = now - this.lastTime;
+      this.lastTime = now;
+
+      this.ct++
+
+      if (this.ct == 15 && this.solver) {
+        delta = delta * this.speedMultiplier / 1000
+        const cap = this.solver.powerSources.find(c => c.source instanceof Capacitor);
+        if (cap) {
+          const source = cap.source as Capacitor
+          delta = 0.0000004281677121557668//  source.getTimeConstant(cap.totalImpedance).dividedStep(3).seconds
+        }
+        //
+
+        this.solver?.recalculate()
+
+        this.solver?.check(new Time((delta)))
+      }
+      if (this.ct > 30) {
+        this.ct = 0
+      }
+      requestAnimationFrame(draw)
+    }
+    requestAnimationFrame(draw)
   }
 
 

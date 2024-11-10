@@ -20,6 +20,7 @@ type ConenctorKeyArray<T extends WiringC<Wiring>> = {
     constructor: T,
     names: T extends WiringC<infer S> ? Array<KeyNames<S>> : never,
     refnames?: T extends WiringC<infer S> ? Array<KeyNames<S>> : never
+    in: T extends WiringC<infer S> ? KeyNames<S> : never
 }
 
 
@@ -29,10 +30,7 @@ export class DefaultSerializer {
     static for<T extends WiringC<Wiring>>(type: ConenctorKeyArray<T>) {
         class Noop extends SerialisationFactory.of(type.constructor) {
             override map = this.json({
-                initFromJson(fromJSON, options) {
-                    debugger
-                    return {} as any
-                },
+
                 toJSON: (obj, o) => {
                     for (const name of type.refnames as Array<string>) {
                         if (o.fromConnection === obj[name]) {
@@ -47,9 +45,51 @@ export class DefaultSerializer {
                     }
                     return plain
                 },
-                applyFromJSON: () => {
-                    debugger
-                    return {} as any
+                initFromJson(fromJSON, options) {
+
+                    if ("ref" in fromJSON) {
+                        return options.withReference(fromJSON.ref as string, obj => {
+                            if ("connectionId" in fromJSON) {
+                                for (const name of type.refnames) {
+                                    const con = obj[name] as Connection
+                                    if (con.id === fromJSON["connectionId"]) {
+                                        options.wire.connect(con)
+                                        break;
+                                    }
+                                }
+                            } else {
+                                debugger
+                            }
+
+
+                        })
+                    }
+
+                    const obj = new type.constructor()
+                    return {
+                        node: obj
+                    }
+
+                },
+
+                applyFromJSON: (obj, json, context,) => {
+                    if ("ref" in json) {
+                        debugger
+                        return
+                    }
+
+                    if (context.wire) {
+                        context.wire.connect(obj[type.in])
+                    }
+
+
+                    for (const name of type.names) {
+
+                        const outConnection = obj[name]
+                        //JsonSerializer.createUiRepresation(obj, json, context)
+                        const connected = context.loadElement(json[name], { ...context, inC: outConnection });
+
+                    }
                 }
             })
 

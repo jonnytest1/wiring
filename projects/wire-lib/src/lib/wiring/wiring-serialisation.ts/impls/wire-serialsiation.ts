@@ -10,6 +10,7 @@ export class WireSerialsiation extends SerialisationFactory.of(Wire) {
 
         },
         toJSON: (obj, o) => {
+
             return {
                 connectedTo: o.serialiseWire(obj)
             }
@@ -49,17 +50,22 @@ export class WireSerialsiation extends SerialisationFactory.of(Wire) {
                     wire: context.references[json.uuid] as Wire
                 });
 
-                if (!returnWire) {
-                    returnWire = connected.wire
-                } else if (returnWire !== connected.wire) {
-                    // cause we throwin away the other connections right now
-                    debugger
-                }
+                connected.then(() => {
+                    //debugger
+                })
+
+
+                /*  if (!returnWire) {
+                      returnWire = connected.wire
+                  } else if (returnWire !== connected.wire) {
+                      // cause we throwin away the other connections right now
+                      debugger
+                  }*/
 
             }
 
             if (!returnWire) {
-                debugger
+                //debugger
                 /* const tWire = new Wire()
                  tWire.connect(this.wireMap[json.uuid])
                  return {

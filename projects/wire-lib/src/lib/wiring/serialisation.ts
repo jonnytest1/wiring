@@ -5,18 +5,24 @@ import type { Battery } from './wirings/battery';
 import type { Collection } from './wirings/collection';
 import type { Connection } from './wirings/connection';
 import type { Wire } from './wirings/wire';
-import type { IndexableStatic, Wiring } from './wirings/wiring.a';
+import type { IndexableConstructor, IndexableStatic, Wiring } from './wirings/wiring.a';
 import { iterateJsonStringify } from '../utils/json-stringify-iterator';
 import { UINode } from './wiring-ui/ui-node';
 import { BehaviorSubject } from 'rxjs';
 import { nodesSubject } from './wiring-ui/3d/scene-data';
 import type { SerialisationReturn } from './wiring-serialisation.ts/serialisation-factory';
+import type { ReferenceCall } from './wiring-serialisation.ts/ref-call';
+import type { ResolvablePromise } from '../utils/resolvable-promise';
 
 
 export interface ControllerRef {
   setControlRef: (controlRef, key: string) => void
 }
 type keys = "abc" | "def"
+
+
+
+
 export interface FromJsonOptions<T = Wiring> {
   inC?: Connection,
   wire?: Wire
@@ -36,9 +42,13 @@ export interface FromJsonOptions<T = Wiring> {
   templateName?: string
 
   uiSerialisationMap?: Map<FromJson<"">, new (...args) => UINode>;
-  loadElement: (json, context: FromJsonOptions<T>) => SerialisationReturn<never>
+  loadElement: (json, context: FromJsonOptions<T>) => Promise<T>
 
 
+  withReference: <T extends Wiring>(uuid: string, cb: (el: T) => void) => ReferenceCall
+  callbacks: Record<string, Array<ReferenceCall>>
+
+  firstCall?: boolean
 }
 
 
@@ -90,7 +100,8 @@ export class JsonSerializer {
   static async createUiRepresation(node: Wiring & Collection, json: UIJson, optinos: FromJsonOptions) {
     await optinos.constorlRefsInitialized;
     const uiConstructor = optinos.uiSerialisationMap.get(node.constructor)
-    if (uiConstructor && json.ui?.x && json.ui.y && optinos.viewRef !== undefined) {
+    if (uiConstructor && json.ui?.x && json.ui.y && optinos.viewRef !== undefined && !json.ui["displayed"]) {
+      json.ui["displayed"] = true
       const position = new Vector2(json.ui)
 
 
@@ -120,6 +131,8 @@ export class JsonSerializer {
 
 
 
+    } else if (!uiConstructor) {
+      console.warn("Missing uinode for " + (node.constructor as IndexableConstructor).typeName)
     }
   }
 

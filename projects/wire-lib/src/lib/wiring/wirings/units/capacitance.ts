@@ -8,4 +8,8 @@ export class Capacitance {
         return new Capacitance(microFarad / 1000000)
     }
 
+    toMicro() {
+        return this.farad * 1000000
+    }
+
 }   

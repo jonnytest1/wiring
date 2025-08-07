@@ -32,9 +32,18 @@ export interface SimpleUiNodeOpts<T extends Wiring> {
 }
 
 
-let vccLines = false
+let vccLines = location.search.includes("showvcc")
 
 export function simpleUiComponent<T extends Wiring>(opts: SimpleUiNodeOpts<T>) {
+
+  interface ConnectionDefinition {
+    collectionMock: Collection;
+    offset: {
+      x: number;
+      y: number;
+    };
+    conName?: string;
+  }
 
   /***
    * 
@@ -50,6 +59,7 @@ export function simpleUiComponent<T extends Wiring>(opts: SimpleUiNodeOpts<T>) {
                 #inout
                 class="connector top"
                 [attr.title]="getTitle(con)"
+                [title]="getTitle(con)"
                 [singleInOut]="true"
                 style="    position: absolute;"
                 [ngStyle]="{left:con.offset.x+'px',top:con.offset.y+'px'}"
@@ -86,25 +96,21 @@ export function simpleUiComponent<T extends Wiring>(opts: SimpleUiNodeOpts<T>) {
     @ViewChildren("inout")
     connectorElements: QueryList<InOutComponent>
 
-    connections: Array<{
-      collectionMock: Collection
-      offset: {
-        x: number,
-        y: number
-      }
-    }> = []
+    connections: Array<ConnectionDefinition> = []
     constructor() {
       super({} as T)
     }
 
-    getTitle(con) {
-      return con.collectionMock.inC.id
+    getTitle(con: ConnectionDefinition) {
+      return con.collectionMock.inC?.id ?? con.conName
     }
     override initNodes(): void {
       for (const con of opts.connections) {
         this.connections.push({
+          ...con,
           collectionMock: new Collection(this.node[con.conName] as Connection, null),
-          offset: con.offset
+          offset: con.offset,
+
         })
       }
     }

@@ -4,6 +4,7 @@ import "./lib/jscpp"
 import type { Esp32 } from '../../esp32';
 import {
     consumeFunction, instantiate, newClassBound, stringTypeLiteral, type ArrayTypeLiteral,
+    type JscppDebugger,
     type IncludeObj,
     type JscppConfig, type JscppInclude, type Member, type Runtime,
     type StringTypeLiteral, type TypeArg, type TypeValue
@@ -35,6 +36,9 @@ export class CppExecuter extends Executer {
     startime = -1
     params: CppExecuterParams = {}
 
+
+    debugger: JscppDebugger
+
     constructor(private environment: Esp32) {
         super()
 
@@ -57,8 +61,10 @@ export class CppExecuter extends Executer {
         #include <mainloop>
     ${code}
 int main() {
-
-   looptrigger(setup,loop);
+   setup();
+   while (true){
+      loop();
+   }
    return 0;
 }`
     }
@@ -79,9 +85,21 @@ int main() {
                 ...fastLed(this.environment),
                 "Arduino.h": {
                     load: (rt) => {
-                        rt.regFunc((rt, _this, setupFnc) => {
+                        rt.regFunc((rt, _this, delay) => {
                             console.log("delay")
-                            //debugger;
+                            this.debugger.setStopConditions({
+                                isStatement: false,
+                                positionChanged: false,
+                                lineChanged: true
+                            });
+                            setTimeout(() => {
+                                this.debugger.setStopConditions({
+                                    isStatement: false,
+                                    positionChanged: false,
+                                    lineChanged: false
+                                });
+                                this.debugger.continue()
+                            }, delay.v)
                             return rt.val(rt.voidTypeLiteral, undefined);
                         }, "global", "delay", [rt.intTypeLiteral], rt.voidTypeLiteral);
 
@@ -120,15 +138,16 @@ int main() {
                     load: (rt) => {
                         rt.regFunc((rt, _this, setupFnc, loopFnc) => {
                             consumeFunction(rt, setupFnc);
-
-                            this.intervals.push(setInterval(() => {
-                                try {
-                                    consumeFunction(rt, loopFnc);
-                                } catch (e) {
-                                    console.error(e)
-                                    this.logs.push({ color: "red", line: e.stack })
-                                }
-                            }, 1000));
+                            consumeFunction(rt, loopFnc);
+                            debugger
+                            /* this.intervals.push(setInterval(() => {
+                                 try {
+                                     consumeFunction(rt, loopFnc);
+                                 } catch (e) {
+                                     console.error(e)
+                                     this.logs.push({ color: "red", line: e.stack })
+                                 }
+                             }, 1000));*/
 
 
                             return rt.val(rt.voidTypeLiteral, undefined);
@@ -149,6 +168,7 @@ int main() {
                     debugger;
                 }
             },
+            debug: true
         };
         /* this.pythonInstance = jsPython()
          this.pythonInstance.registerPackagesLoader((p) => {
@@ -166,6 +186,11 @@ int main() {
          })*/
 
 
+        /*window.JSCPP.visit = new Proxy(window.JSCPP.visit, {
+            *apply(target, thisArg, argArray) {
+                debugger
+            },
+        })*/
     }
 
     override start(): void {
@@ -173,7 +198,17 @@ int main() {
         try {
             this.startime = Date.now()
             this.logs.length = 0
+
             const returnV = window.JSCPP.run(this.wrappedCode(), "", this.libs)
+
+            this.debugger = returnV
+
+            this.debugger.setStopConditions({
+                isStatement: false,
+                positionChanged: false,
+                lineChanged: false
+            });
+            this.debugger.continue()
         } catch (e) {
             console.error(e)
             this.logs.push({ color: "red", line: e.stack })

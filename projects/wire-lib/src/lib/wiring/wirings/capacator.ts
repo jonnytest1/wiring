@@ -160,7 +160,7 @@ export class Capacitor extends Wiring implements PowerSupply {
         this.lastCurrent = options.current
 
         if (currentVoltage.dropped(options.voltageDrop).isPositive()) {
-            this.solver.invalidate()
+            this.solver?.invalidate()
         }
         if (currentVoltage < this.supplyVoltage) {
             //q = Vs(1 - e ^ (-t / RC)) * c

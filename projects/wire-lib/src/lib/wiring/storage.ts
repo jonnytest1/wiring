@@ -24,7 +24,16 @@ export class LocalStorageSerialization {
 
 
 
+  stringify(batteries: Array<Battery>) {
+    const nets = []
 
+    for (const battery of batteries) {
+      // stringify battery individually, cause no key is used to break up loops
+      nets.push(wiringJsonStringify(battery))
+    }
+    debugger
+    return JSON.stringify(nets);
+  }
 
   storeToLocal(batteries: Array<Battery>,
   ) {
@@ -38,6 +47,7 @@ export class LocalStorageSerialization {
     const json = JSON.stringify(nets);
     localStorage.setItem('el_network', json);
     console.log(json);
+
   }
   async load(options: Partial<FromJsonOptions & { remote: boolean }>): Promise<Array<PowerSupply>> {
     let parsed;

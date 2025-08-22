@@ -243,11 +243,16 @@ export class CircuitSolver {
 
 
                     }
-                    options = node.node.processCurrent({
+
+                    const newOptions = node.node.processCurrent({
                         ...options,
                         fromConnection: node.connection
                     })
 
+                    if (!newOptions) {
+                        debugger;
+                    }
+                    options = newOptions
                 }
 
 
@@ -292,7 +297,7 @@ export class CircuitSolver {
 
             const ground = nodes.at(-1);
             if (!(ground instanceof Array)) {
-                if (ground.node !== this.ground.parent) {
+                if (ground.node !== source.ground.parent) {
                     source.invalidConfig = true
 
 

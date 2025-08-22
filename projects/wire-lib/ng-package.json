@@ -10,6 +10,8 @@
   "allowedNonPeerDependencies": [
     "jspython-interpreter",
     "@types/three",
-    "three"
+    "three",
+    "cannon-es",
+    "nerdamer"
   ]
 }

@@ -20,9 +20,9 @@ export const existingNodeToken = new InjectionToken<Collection>("existing node")
 @Directive()
 export abstract class UINode<T extends Wiring = Wiring> extends TypedEventEmitter<{ afterViewInit: void }> {
 
-  private position: Vector2;
+  position: Vector2;
 
-  private rotation: number
+  rotation: number
 
   @ViewChild('options')
   public optionsTemplate?: TemplateRef<any>;

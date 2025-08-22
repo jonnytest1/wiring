@@ -1,3 +1,5 @@
-<canvas #displaycanvas>
+<canvas #displaycanvas
+        (drop)="drop($event)"
+        (dragover)="$event.preventDefault()">
 
 </canvas>

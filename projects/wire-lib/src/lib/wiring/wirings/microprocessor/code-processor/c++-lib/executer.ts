@@ -10,6 +10,7 @@ import {
     type StringTypeLiteral, type TypeArg, type TypeValue
 } from './jscpp';
 import { fastLed } from './libs/fastled';
+import { bleLibs } from './libs/ble';
 
 
 
@@ -53,6 +54,9 @@ export class CppExecuter extends Executer {
     wrappedCode() {
 
         let code = this.code;
+
+        code = code.replace(/([A-Za-z]+)::([a-zA-Z]+)/g, "$1Static.$2")
+
         if (this.params.codemapper) {
             code = this.params.codemapper(code)
         }
@@ -82,6 +86,7 @@ int main() {
 
         this.libs = {
             includes: {
+                ...bleLibs(),
                 ...fastLed(this.environment),
                 "Arduino.h": {
                     load: (rt) => {
@@ -199,7 +204,9 @@ int main() {
             this.startime = Date.now()
             this.logs.length = 0
 
-            const returnV = window.JSCPP.run(this.wrappedCode(), "", this.libs)
+            const finalCode = this.wrappedCode();
+            console.log("executing with ", finalCode)
+            const returnV = window.JSCPP.run(finalCode, "", this.libs)
 
             this.debugger = returnV
 
@@ -211,7 +218,7 @@ int main() {
             this.debugger.continue()
         } catch (e) {
             console.error(e)
-            this.logs.push({ color: "red", line: e.stack })
+            this.logs.push({ color: "red", line: e.message + "\n" + e.stack.split("\n").slice(0, 2).join("\n") })
         }
     }
 

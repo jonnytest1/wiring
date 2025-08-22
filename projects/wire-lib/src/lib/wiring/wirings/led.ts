@@ -4,6 +4,7 @@ import { JsonSerializer } from '../serialisation';
 import type { RegisterOptions } from './interfaces/registration';
 import { noConnection } from './resistance-return';
 import { Resistor } from './resistor';
+import { Current } from './units/current';
 import { Impedance } from './units/impedance';
 import { Voltage } from './units/voltage';
 import type { Wire } from './wire';
@@ -50,8 +51,12 @@ export class LED extends Resistor {
     if (options.current.isPositive()) {
       if (this.voltageDropV > this.maxVoltageDropV) {
         this.blown = true;
-        this.solver.recalculate()
-        return
+        this.solver!.recalculate()
+        return {
+          ...options,
+          voltageDrop: options.voltageDrop.dropped(this.voltageDropV),
+          current: Current.ZERO()
+        }
       }
       this.brightness = this.voltageDropV.voltage * 100 / this.maxVoltageDrop
     } else {

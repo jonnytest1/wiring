@@ -1,5 +1,5 @@
 import {
-    AmbientLight, Mesh, SphereGeometry, MeshStandardMaterial, Object3DEventMap,
+    Mesh, SphereGeometry, MeshStandardMaterial, Object3DEventMap,
     Scene as ThreeScene, Line,
     AxesHelper,
     SpotLight,
@@ -22,6 +22,11 @@ import { Battery3d } from './asset/model/3dbattery';
 import { InteropWorld } from './gravity';
 import type { SharedEventMesh } from './event';
 import type { Router } from '@angular/router';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { InMemoryLaodMAanger } from './in-memory-laod-manager';
+import { Wired3dModel } from './asset/model/wired-3dmodel';
+import { positionable } from './util/positionable';
+import { Body, Box, Material, RigidVehicle, Sphere, Vec3 } from 'cannon-es';
 
 
 const modelList = [
@@ -37,6 +42,7 @@ export interface Context {
 }
 
 export class GameScene extends ThreeScene {
+
     ball: Mesh<SphereGeometry, MeshStandardMaterial, Object3DEventMap>;
 
     wires: Set<Wire>;
@@ -75,11 +81,43 @@ export class GameScene extends ThreeScene {
         const diameter = 30;
 
         this.add(new AxesHelper(200));
-
+        const gridHelper = new THREE.GridHelper(2000, 200);  // 10x10 grid, 10 divisions
+        gridHelper.position.copy(new THREE.Vector3(0, 5, 0))
+        // Add the grid helper to your scene
+        this.add(gridHelper);
 
 
         const yAxis = new Line()
         this.add(yAxis)
+        /*
+                var boxA = new THREE.Box3();
+                boxA.setFromCenterAndSize(
+                    new THREE.Vector3(1, 1, 1),
+                    new THREE.Vector3(10, 10, 10),
+                );
+                const dimensionsA = new THREE.Vector3().subVectors(boxA.max, boxA.min);
+                const helper = new THREE.Mesh(new BoxGeometry(dimensionsA.x, dimensionsA.y, dimensionsA.z)) as SharedEventMesh;
+                helper.position.y = 25
+                this.add(helper)
+                this.gravity.addGravityObject(helper, 0, Body.DYNAMIC)
+        
+        
+        
+        
+        
+        
+                var boxB = new THREE.Box3();
+                boxB.setFromCenterAndSize(
+                    new THREE.Vector3(1, 10, 1),
+                    new THREE.Vector3(10, 10, 10),
+                );
+                const dimensionsB = new THREE.Vector3().subVectors(boxB.max, boxB.min);
+                const helperB = new THREE.Mesh(new BoxGeometry(dimensionsB.x, dimensionsB.y, dimensionsB.z)) as SharedEventMesh;
+                helperB.position.y = 20
+                this.add(helperB)
+                this.gravity.addGravityObject(helperB, 0, Body.DYNAMIC)
+        */
+
 
         for (let i = 0; i < 100; i++) {
             // const point =
@@ -144,7 +182,7 @@ export class GameScene extends ThreeScene {
                     nodeMesh.position.set(node.position.x / 10, nodeYLEvel, node.position.y / 10)
                     this.gravity.addGravityObject(nodeMesh, 1)
 
-                    this.add(nodeMesh)
+                    this.add(positionable(nodeMesh))
                     this.nodeComponent.set(node.node, nodeMesh)
 
                     const nodeWires = node.node.uiNode.getWires()
@@ -161,7 +199,7 @@ export class GameScene extends ThreeScene {
 
 
 
-        const spotLight: SpotLight = new SpotLight(new Color("white"), 2, 0, 0.4, 0.5, 0.1);
+        const spotLight: SpotLight = new SpotLight(new Color("white"), 1, 0, 0.4, 0.5, 0.1);
         spotLight.position.set(10, 200, 10);
         spotLight.castShadow = true;
         spotLight.shadow.mapSize.width = 1024;
@@ -184,6 +222,40 @@ export class GameScene extends ThreeScene {
         floor.receiveShadow = true
         floor.position.set(50, -1, 50)
         this.add(floor)
+
+
+
+
+        /*const chassisShape = new Box(new Vec3(5, 0.5, 2))
+        const chassisBody = new Body({ mass: 1 })
+
+        const centerOfMassAdjust = new Vec3(0, -1, 0)
+        chassisBody.addShape(chassisShape, centerOfMassAdjust)
+
+
+        const vehicle = new RigidVehicle({
+            chassisBody,
+        })
+
+        const mass = 1
+        const axisWidth = 7
+        const wheelShape = new Sphere(1.5)
+        const wheelMaterial = new Material('wheel')
+        const down = new Vec3(0, -1, 0)
+
+        const wheelBody1 = new Body({ mass, material: wheelMaterial })
+        wheelBody1.addShape(wheelShape)
+        vehicle.addWheel({
+            body: wheelBody1,
+            position: new Vec3(-5, 0, axisWidth / 2).vadd(centerOfMassAdjust),
+            axis: new Vec3(0, 0, 1),
+            direction: down,
+        })
+        vehicle.addToWorld(this.gravity.world)*/
+
+
+
+
 
     }
 
@@ -235,6 +307,47 @@ export class GameScene extends ThreeScene {
         })
     }
 
+
+
+    addModel(fileMap: Record<string, Record<string, File>>, intersection: THREE.Intersection) {
+
+        return new Promise<Wired3dModel>(res => {
+            for (const file in fileMap) {
+                const model = fileMap[file]
+
+                let fltfFile = model["gltf"];
+                if (!fltfFile) {
+                    fltfFile = model["glb"];
+                    if (!fltfFile) {
+                        continue
+                    }
+                }
+                const url = URL.createObjectURL(fltfFile)
+
+                const loader = new GLTFLoader(new InMemoryLaodMAanger(model, url))
+
+                loader.load(url, (gltf) => {
+
+                    const model = new Wired3dModel(gltf, intersection);
+                    this.add(model.object)
+                    this.gravity.addGravityObject(model.object as any, 10)
+                    res(model)
+                }, undefined, function (error) {
+                    debugger
+                    console.error(error);
+
+                });
+
+            }
+        })
+
+
+
+
+
+
+
+    }
 
 
 }

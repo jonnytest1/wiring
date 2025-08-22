@@ -16,10 +16,10 @@ export class Esp32Serial extends SerialisationFactory<Esp32> {
             return obj.toJSON(options)
         },
         applyFromJSON(obj, fromJSON, options) {
-            debugger
+            // debugger
         },
         initFromJson(json, options) {
-            debugger
+
             if (json.ref) {
 
                 this.jsonRefPinId = json.pinConnection

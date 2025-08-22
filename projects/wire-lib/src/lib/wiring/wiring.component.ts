@@ -1,4 +1,4 @@
-import { AfterContentChecked, ComponentRef, ElementRef, OnDestroy, OnInit } from '@angular/core';
+import { AfterContentChecked, ComponentRef, ElementRef, HostBinding, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { ChangeDetectorRef, Component, ViewChild, ViewContainerRef } from '@angular/core';
 import { LocalStorageSerialization } from './storage';
 import { Vector2 } from './util/vector';
@@ -136,7 +136,25 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
     this.data.wireChange.subscribe(() => {
       this.solver?.invalidate()
     })
+
+
+
+
   }
+  @HostListener("window:keyup", ["$event"])
+  public keyDown(evt: KeyboardEvent) {
+    if (evt.ctrlKey) {
+      console.log("ctrl")
+
+      if (evt.key == "z") {
+        this.nodes = this.data.undo();
+      } else if (evt.key == "y") {
+        //this.nodes = this.data.redo();
+      }
+    }
+  }
+
+
   private preloadExample(example: string, url: URL) {
     this.serialize.load({
       remote: true,
@@ -275,13 +293,14 @@ export class WiringComponent implements OnInit, AfterContentChecked, OnDestroy {
       this.refreshSolver();
     }
     newNode.instance.setPosition(position);
-
     this.nodes.push({
       componentRef: newNode,
       uiInstance: newNode.instance,
     });
-    this.solver.invalidate()
+    this.data.nodesHistory.push([...this.nodes])
+    this.solver?.invalidate()
     this.cdr.markForCheck();
+    newNode.instance.initNodes();
   }
 
   private refreshSolver() {

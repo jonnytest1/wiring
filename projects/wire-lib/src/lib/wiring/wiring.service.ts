@@ -8,6 +8,7 @@ import type { NodeEl } from './wiring.component';
 
 @Injectable({ providedIn: 'root' })
 export class WiringDataService {
+
   dragConnection?: Connection;
 
   //wires = new BehaviorSubject<Array<{ from: InOutComponent | Vector2, to: InOutComponent | Vector2 }>>([]);
@@ -24,4 +25,28 @@ export class WiringDataService {
   draggedNode: NodeEl;
 
 
+  historyIndex = -1;
+
+  nodesHistory: Array<Array<NodeEl>> = [];
+
+  undo(): NodeEl[] {
+    if (this.historyIndex == -1) {
+      this.historyIndex = this.nodesHistory.length - 1;
+    }
+
+    this.historyIndex--;
+    this.historyIndex = Math.max(this.historyIndex, 0)
+
+    return this.nodesHistory[this.historyIndex]
+  }
+
+  redo(): NodeEl[] {
+    if (this.historyIndex == -1) {
+      this.historyIndex = this.nodesHistory.length - 1;
+    }
+
+    this.historyIndex++;
+    this.historyIndex = Math.min(this.historyIndex, this.nodesHistory.length - 1)
+    return this.nodesHistory[this.historyIndex]
+  }
 }

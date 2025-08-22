@@ -101,8 +101,9 @@ export function deserialize<T extends Wiring, S extends JsonSerialisationtype & 
             y: 50 + (innerHeight - 100) * Math.random(),
         }
     }
-
-    JsonSerializer.createUiRepresation(obj.node as Collection, uijson, optinos);
+    if (!("ref" in json)) {
+        JsonSerializer.createUiRepresation(obj.node as Collection, uijson, optinos);
+    }
     if (json.uuid && obj.node) {
         obj.node.nodeUuid = json.uuid
     }

@@ -1,6 +1,6 @@
 {
   "name": "electronics-lib",
-  "version": "1.0.55",
+  "version": "1.0.56",
   "author": "jonathan heindl",
   "description": "electronics simulator",
   "license": "ISC",
@@ -25,6 +25,7 @@
     "@babel/core": "^7.26.0",
     "@babel/preset-typescript": "^7.26.0",
     "@types/uuid": "^10.0.0",
+    "@types/web-bluetooth": "^0.0.21",
     "babel-jest": "^29.7.0",
     "jest": "^29.7.0",
     "ts-node": "^10.9.2"

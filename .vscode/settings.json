@@ -1,0 +1,12 @@
+{
+    "sonarlint.rules": {
+        "typescript:S3776": {
+            "level": "off"
+        }
+    },
+    "switchSettings.current": {
+        "env": {
+            "userindex": 0
+        }
+    }
+}

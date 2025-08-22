@@ -50,12 +50,14 @@
          class="codetext"
          [style.height]="getTextAreaHeight()">
       <pre contenteditable
-           (blur)="node.executer.update(textscr.textContent)">{{node.script}}</pre>
+           style="resize: both;"
+           (blur)="node.executer.update(textscr.textContent)">{{node.script||"// code here"}}</pre>
     </div>
     <div class="logs"
          [style.height]="getTextAreaHeight()">
       logs:<br>
       <span *ngFor="let log of node.executer.logs"
+            style="white-space: pre;"
             [style.color]="log.color">{{log.line}}<br></span>
     </div>
   </div>

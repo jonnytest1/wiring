@@ -6,7 +6,7 @@
             "connectedTo": {
                 "type": "Esp32",
                 "uuid": "8faa3d99-bfe9-4746-bdf5-7608c722ec28",
-                "code": "#include <FastLED.h>\n#include <Arduino.h>\nint NUM_LEDS=64;\nint DATA_PIN=14;\n\nCRGB leds[NUM_LEDS];\nvoid setup()\n{\n    debug(\"setup\");\n    FastLED.addLeds(leds, NUM_LEDS);\n}\n\nint loopCount=0;\n\nvoid loop()\n{\n    delay(1000);\n    if (loopCount%2==0){\n        leds[0] = FastLED.Red;\n        leds[63] = FastLED.Black;\n    }else{\n        leds[0] = FastLED.Black;\n        leds[63] = FastLED.Red;\n    }\n    print(millis()); \n    FastLED.show();\n    loopCount++;\n}",
+                "code": "#include <BLEDevice.h> \n#include <Arduino.h> \nvoid setup(){\nBLEClient pClient = BLEDevice::createClient();\n}",
                 "ui": {
                     "y": 230,
                     "x": 470

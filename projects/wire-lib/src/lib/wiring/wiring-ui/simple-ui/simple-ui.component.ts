@@ -33,17 +33,17 @@ export interface SimpleUiNodeOpts<T extends Wiring> {
 
 
 let vccLines = location.search.includes("showvcc")
-
+export interface ConnectionDefinition {
+  collectionMock: Collection;
+  offset: {
+    x: number;
+    y: number;
+  };
+  conName?: string;
+}
 export function simpleUiComponent<T extends Wiring>(opts: SimpleUiNodeOpts<T>) {
 
-  interface ConnectionDefinition {
-    collectionMock: Collection;
-    offset: {
-      x: number;
-      y: number;
-    };
-    conName?: string;
-  }
+
 
   /***
    * 

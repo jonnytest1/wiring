@@ -56,7 +56,7 @@ export class OrGate extends Wiring {
             }
 
             if (enabled !== this.isEnabled()) {
-                this.solver.invalidate()
+                this.solver?.invalidate()
             }
             this.currentAIn = options.current
             this.voltageDropAIn = Voltage.fromCurrent(options.current, this.inToGndImpedance)
@@ -74,7 +74,7 @@ export class OrGate extends Wiring {
             }
 
             if (enabled !== this.isEnabled()) {
-                this.solver.invalidate()
+                this.solver?.invalidate()
             }
             this.currentBIn = options.current
             this.voltageDropBIn = options.voltageDrop

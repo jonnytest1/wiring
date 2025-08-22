@@ -4,7 +4,7 @@ import { instantiate, newClassBound, type ArrayTypeLiteral, type Runtime, type S
 export function fastLed(env: Esp32) {
     return {
         "FastLED.h": {
-            load: (rt) => {
+            load: (rt: Runtime) => {
                 const ledClass = newClassBound<[StringTypeLiteral]>(rt)("CRGB", [
                     {
                         name: "color" as const,

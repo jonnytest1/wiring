@@ -3,7 +3,7 @@ export class TypedEventEmitter<T extends Record<string, unknown>> {
 
 
 
-    private readonly listeners: { [key in keyof T]?: Array<(val: T[key]) => void> } = {}
+    readonly listeners: { [key in keyof T]?: Array<(val: T[key]) => void> } = {}
 
 
     emit<K extends keyof T>(key: K, value?: T[K]) {

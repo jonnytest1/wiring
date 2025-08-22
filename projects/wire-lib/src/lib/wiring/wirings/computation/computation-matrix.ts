@@ -149,11 +149,14 @@ export class ComputationMatrix {
         let currentExprStr = currentExpressions.map(e => e.expr());
 
         Object.values(this.impedances)
-            .filter(e => isFinite(e.impedance.impedance) && this.usedResistances.has(e.index))
-            .forEach(e => {
+            .forEach((e, i) => {
+                let impedance = e.impedance.impedance
+                if (!isFinite(e.impedance.impedance)) {
+                    impedance = Number.MAX_SAFE_INTEGER
+                }
 
                 for (let i = 0; i < currentExprStr.length; i++) {
-                    currentExprStr[i] = currentExprStr[i].replace(`R${e.index}__`, `${e.impedance.impedance}`)
+                    currentExprStr[i] = currentExprStr[i].replace(`R${e.index}__`, `${impedance}`)
 
                 }
             });

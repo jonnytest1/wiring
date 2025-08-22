@@ -67,7 +67,9 @@ export class Esp32UiComponent extends UINode<Esp32> {
   }
 
   getTextAreaHeight() {
-    return Math.min(this.node.script.split('\n').length, 10) * 18 + 'px'
+
+    const scriptLines = this.node.script?.split('\n')?.length;
+    return Math.min(scriptLines ? scriptLines + 2 : 10, 10) * 18 + 'px'
   }
 
 }

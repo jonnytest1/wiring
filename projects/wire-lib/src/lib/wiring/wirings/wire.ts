@@ -30,8 +30,8 @@ export class Wire extends Wiring {
   public isViewWire = true;
 
 
-  createConnectionLink() {
-    const conLink = new Connection(this, "connectionLink");
+  createConnectionLink(name: string) {
+    const conLink = new Connection(this, name);
     this.connections.push(conLink)
     return conLink
   }
